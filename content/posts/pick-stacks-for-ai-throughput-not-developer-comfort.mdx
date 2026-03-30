@@ -1,0 +1,130 @@
+---
+title: "pick stacks for ai throughput, not developer comfort"
+description: "startup teams should choose languages and frameworks based on end-state constraints, model fluency, and trust rails, not nostalgia."
+date: "2026-03-30"
+created: "2026-03-30"
+updated: "2026-03-30"
+tags: ["ai-coding", "tooling", "frameworks", "startup", "agentic-development"]
+published: true
+---
+
+part of [my ai coding workflow](/posts/the-system).
+
+i watched an agent ship a fast fix that looked correct and still missed the real problem.
+
+if you've read [how i got here](/posts/how-i-got-here), you know i've repeated this failure mode enough times to stop treating it as a one-off.
+
+in the agentic era, "what does the team like coding in?" is no longer the first stack question.
+
+the first question is: **what stack gives us the best ai throughput to ship the outcome we want, with a trust system we can defend?**
+
+the core issue is an 80/20 problem.
+
+models are usually good at the first 80% of implementation.
+
+the last 20% is where production bugs and expensive regressions hide:
+
+- subtle typing failures
+- framework lifecycle edge cases
+- weird sdk/build/runtime behavior
+
+that 20% is exactly why stack choice needs to change.
+
+## the old stack question is wrong now
+
+hiring pipeline, team familiarity, and ecosystem maturity still matter.
+
+they're just not the first filter anymore.
+
+the new constraint is: can this human+ai system ship safely and repeatedly without collapsing into drift?
+
+## start with the end in mind
+
+i still use the same first principle: start with the end.
+
+- is this finance-adjacent where correctness is non-negotiable?
+- is this low-level and hardware-close?
+- is this high interactivity and UX-sensitive?
+- is this just a landing page with fast iteration needs?
+- is runtime performance actually critical, or is speed-to-market the real constraint?
+
+once i answer that, i can back into language/framework choices.
+
+this prevents the usual trap: "we always use X, so we should use X again."
+
+## then ask the uncomfortable question
+
+after end-goal fit, i ask something teams skip:
+
+**is the model actually good enough in this stack for our velocity expectations?**
+
+most strong models can handle python/typescript/go reasonably well. that's not enough.
+
+the key question is whether the model can finish safely in your real codebase, not just generate a decent first pass.
+
+this is where the dangerous 20% shows up in practice. i wrote about this in [root cause vs symptom](/posts/root-cause-vs-symptom):
+
+- a ranking bug got a quick "fix" with backfilled graph edges, but the root cause was silent graph writes when config was missing.
+- a later fix tried to reintroduce deprecated key prefixes because stale code looked authoritative.
+
+those are not beginner mistakes. those are system mistakes.
+
+this is why i keep saying: if you're running terminal-first agents, pair them with IDE context and type hints whenever possible. that context closes a big chunk of the 20% gap.
+
+and if an ecosystem cannot provide strong type/language feedback to your agent workflow, i treat that as a stack red flag.
+
+## less manual review is where we're heading, but trust still matters
+
+i do believe we're heading toward fewer line-by-line manual reviews.
+
+not zero. fewer.
+
+and i don't think that's automatically bad.
+
+but the way i use this is important: human review still matters for alignment, especially in startup teams where the repo is evolving quickly.
+
+i want reviewers to answer:
+
+- what changed at a system level?
+- does this move us toward the architecture we want?
+- are we introducing patterns we actually want repeated?
+
+not just: "did i find one bug in this diff?"
+
+## the trust system i run today
+
+the insight is the system, not any single tool.
+
+i'm comfortable moving faster because i rely on explicit rails, not vibes.
+
+- layer 1: planning quality. i run [council-style plan critique](/posts/multi-llm-plan-critique) on non-trivial work.
+- layer 2: implementation discipline. i enforce test-first planning ([details here](/posts/test-first-enforcement)).
+- layer 3: extra tightening passes. i run `/simplify` and use the [superpowers skill](https://github.com/obra/superpowers) to run additional automated code-quality checks during implementation, not just at PR time.
+- layer 4: drift and context control. i run [vibecheck](/posts/vibecheck) and use [handoff](/posts/handoff) between sessions.
+- layer 5: final pr merge gate. i use greptile for agentic PR review with a simple policy: **5 can merge, 4 needs team signoff**.
+
+none of these by themselves replace human judgment.
+
+together, they create enough trust to move quickly without pretending we reviewed everything manually the old way.
+
+## stack choice in this era: my order of operations
+
+for startup teams, this is the decision order i recommend:
+
+1. end-state requirements (correctness, latency, platform constraints)
+2. ai execution quality in the proposed stack
+3. type/context tooling quality during implementation (weak feedback is a red flag)
+4. trust rails (tests, reviews, critique loops, merge policy)
+5. team familiarity
+
+notice familiarity is still there. it's just not first.
+
+that is the whole point.
+
+if your team is not there yet, don't force it overnight.
+
+build the trust system first.
+
+then start choosing stacks based on ai throughput and outcome fit, not habit.
+
+that's where we're headed anyway. better to move there deliberately.
