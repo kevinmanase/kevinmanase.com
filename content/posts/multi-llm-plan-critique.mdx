@@ -1,12 +1,15 @@
 ---
 title: "building a multi-llm plan critique system for claude code"
-description: "how i built a hook that sends plans through gemini and codex before letting claude implement anything."
+description: "from custom bash hooks to superpowers skills + codex review gate. how my multi-llm workflow evolved."
 date: "2026-01-10"
 created: "2026-01-10"
-updated: "2026-01-28"
-tags: ["claude-code", "hooks", "gemini", "codex", "engineering", "multi-llm"]
+updated: "2026-04-01"
+tags: ["claude-code", "hooks", "gemini", "codex", "engineering", "multi-llm", "review-gate"]
 published: true
 changelog:
+  - version: "3"
+    date: "2026-04-01"
+    summary: "Replaced v1/v2 hooks with superpowers skills + codex review gate"
   - version: "2.1"
     date: "2026-01-28"
     summary: "Added auto-save to thoughts/research/, prompted save to plans/"
@@ -24,8 +27,8 @@ this is a deep dive into how i built a claude code hook that sends plans through
 
 ![planning vibes](https://media.giphy.com/media/3o7btPCcdNniyf0ArS/giphy.gif)
 
-<Updated date="2026-01-28">
-**v2**: this post now covers two approaches. the original sequential critique (reviewers see Claude's finished plan) and the new council system (all models explore in parallel). skip to [council planning](#v2-council-planning) for the new approach.
+<Updated date="2026-04-01">
+**v3**: the custom hooks from v1 and v2 have been replaced by [superpowers](https://github.com/obra/superpowers) — a skill system that handles brainstorming, planning, verification, and code review natively inside claude code. it's better than what i built. on top of that, i've added the [codex review gate](#v3-superpowers--codex-review-gate) as a stop-time quality check. skip to [the current setup](#v3-superpowers--codex-review-gate) for what i actually use now.
 </Updated>
 
 ## the insight
@@ -561,62 +564,119 @@ you don't want planning held hostage by an API hiccup.
 3. **unknown unknowns** — each model has different training data, different code exposure. gemini might know a library update. codex might have seen this fail in a thousand repos.
 4. **zero extra effort** — automatic hooks. just use plan mode.
 
-## v1 vs v2: when to use each
+## v3: superpowers + codex review gate
 
-| Aspect | v1 Sequential | v2 Council |
-|--------|---------------|------------|
-| Timing | After Claude plans | While Claude plans |
-| Perspective | Review mode | Exploration mode |
-| Best for | Catching bugs, gaps | Architecture decisions |
-| Speed | 20-30s | Same (parallel) |
-| Cost per plan | ~$0.03 | ~$0.03 |
+### why i stopped using my own hooks
 
-**use v1** for routine plans where you want quality checks.
+v1 and v2 worked. but maintaining bash scripts that parse transcripts, manage background processes, and handle timeouts across three LLM APIs is fragile. every time an API changed or claude code updated its hook format, something broke.
 
-**use v2** for:
-- architecture decisions with multiple valid approaches
-- exploring unfamiliar territory
-- when you want diverse ideas, not just error-catching
+then i found [superpowers](https://github.com/obra/superpowers).
 
-you can run both. v2 during planning, v1 on exit for final validation.
+### what superpowers replaced
 
-## when to skip council
+superpowers is a skill system for claude code built by [jesse vincent](https://github.com/obra). it installs as a plugin and gives claude a structured workflow for brainstorming, planning, debugging, testing, and verification — all the things my custom hooks were trying to do, but better.
 
-not everything needs three perspectives:
+here's what it replaced:
 
-- **simple changes** — typos, config tweaks, obvious bugs
-- **established patterns** — "add another endpoint like the others"
-- **time-sensitive** — when you need to ship now
+**v1 sequential critique → superpowers brainstorming + planning skills.** instead of claude writing a plan and then sending it to other models for review, superpowers changes *how claude plans in the first place*. the brainstorming skill uses socratic questioning — it probes your intent, surfaces assumptions, and presents multiple approaches in structured sections before you commit to anything. it's not "here's my plan, what do you think?" it's "here are three approaches with tradeoffs, which direction do you want?"
 
-use `/council` explicitly for architecture decisions. let automatic hooks handle the rest, but know you can always proceed without waiting.
+**v2 council → mostly replaced, with a gap.** the brainstorming skill gives you the diverse-perspectives-early benefit that council provided. claude explores multiple approaches and presents them for your input before committing. the gap: it's still one model doing the exploration. i haven't brought back `/council` to run gemini and codex in parallel during the superpowers brainstorm phase — that's on my list.
 
-## the tools
+**plan mode itself → replaced.** superpowers effectively replaces claude code's built-in plan mode for me. the writing-plans skill creates detailed implementation plans with bite-sized tasks (2-5 minutes each), exact file paths, and verification steps. the executing-plans skill works through them with review checkpoints. it's more structured than what i was getting from raw plan mode + hook critiques.
 
-| Model | Command | Cost |
-|-------|---------|------|
-| Claude | Native (already running) | Session cost |
-| Gemini | `opencode run --model openrouter/google/gemini-2.5-pro` | ~$0.01/plan |
-| Codex | `codex exec` | ~$0.02/plan |
+the key skills i use daily:
 
-total overhead per plan: ~$0.03 and ~30 seconds of parallel execution.
+| Skill | What it does |
+|-------|-------------|
+| `brainstorming` | Socratic design exploration before any code |
+| `writing-plans` | Detailed implementation plans with verification steps |
+| `executing-plans` | Works through plans with review checkpoints |
+| `test-driven-development` | RED-GREEN-REFACTOR enforcement |
+| `systematic-debugging` | Root-cause analysis before proposing fixes |
+| `verification-before-completion` | Evidence-based completion checks |
+| `requesting-code-review` | Structured review with severity tracking |
 
-## what's missing
+### what superpowers didn't replace: the review gate
 
-things i'd improve:
+superpowers has a `verification-before-completion` skill that checks work before claiming done. it's good — it makes claude actually run tests and verify output before saying "done."
 
-1. **read plan from hook input** instead of filesystem (avoids staleness issues)
-2. **add confidence weights.** if both models agree on an issue, flag it higher
-3. **auto-apply suggestions.** generate a diff for test files mentioned in critiques
-4. **more models.** gpt-4o, claude itself reviewing its own plan
+but it's still claude checking claude's own work. same model, same blind spots.
+
+that's where the **codex review gate** comes in. it's a different model (codex/gpt) reviewing the actual diff after implementation. different training data, different biases, different things it notices.
+
+### the codex review gate
+
+the review gate fires when you're about to mark work as done. codex reviews the actual changes — not the plan, the *implementation*.
+
+```
+you: /done
+codex: [reviews diff, checks for drift, missed tests, security issues]
+codex: "LGTM" → work marked done
+codex: "ISSUES FOUND" → you see the issues before claiming completion
+```
+
+setup is one command:
+
+```bash
+/codex:setup --enable-review-gate
+```
+
+the codex plugin configures everything. no hooks to write, no scripts to maintain.
+
+### what the review gate catches
+
+real examples from my recent sessions:
+
+- **test drift** — plan said "test the error path for expired tokens." implementation had a test file but the error path test was a TODO comment.
+- **missing files** — plan listed 4 files to create. only 3 existed. the 4th was referenced in imports but never written.
+- **silent failures** — tests passed but were testing the mock, not the actual implementation. codex flagged the `vi.mock` placement issue.
+
+these are exactly the failure modes from my [execution outcomes](/posts/the-system) — the Q:0/5 and Q:1/5 scores were almost always implementation drift, not bad plans.
+
+### why codex specifically
+
+codex is genuinely good as both a model and a harness. it runs against the actual diff — it sees what changed, not what you *said* would change. it has codebase context and can verify claims ("did you actually add that test?").
+
+a review gate check takes 10-20 seconds. small price for catching the kind of failures that used to cost hours.
+
+### how the current pipeline works
+
+```
+[superpowers brainstorm] → [superpowers plan] → [implementation w/ TDD] → [codex review gate] → done
+```
+
+1. **brainstorming skill** — socratic exploration, multiple approaches presented
+2. **writing-plans skill** — detailed plan with file paths, verification steps
+3. **executing-plans + TDD skills** — implementation with review checkpoints
+4. **codex review gate** — different-model verification of the actual diff
+
+superpowers handles the planning lifecycle. codex handles the final quality gate. they complement each other because they solve different problems: superpowers makes the *process* better, codex makes the *output* verifiable.
+
+## the evolution
+
+| Version | Approach | Status |
+|---------|----------|--------|
+| v1 | Custom bash hooks, sequential LLM critique | Retired — replaced by superpowers |
+| v2 | Custom bash hooks, parallel council brainstorm | Mostly retired — superpowers brainstorming replaces this, but `/council` with parallel models is still on my list |
+| v3 | Superpowers skills + codex review gate | **Current** |
+
+the progression: hand-rolled bash scripts → structured skill system + purpose-built review tool. less maintenance, better results.
+
+## what's next
+
+1. **bring back `/council` for superpowers brainstorm** — run gemini and codex in parallel during the brainstorming phase. superpowers gives you structured exploration from one model; council would add diverse perspectives from three.
+2. **close the feedback loop** — feed review gate findings back into brainstorm prompts so the same class of drift doesn't recur
+3. **more codex integration** — codex as a rescue agent when claude gets stuck, not just as a reviewer
 
 ## related
 
+- [superpowers](https://github.com/obra/superpowers) — the skill system that replaced my custom hooks
 - [my overall ai coding workflow](/posts/the-system)
 - [test-first enforcement](/posts/test-first-enforcement). the validator script
 - [handoff](/posts/handoff). managing context across sessions
 
 ---
 
-the shift from "critique after" to "brainstorm together" changed how i think about multi-model workflows. it's not about which model is best. it's about what each model knows that the others don't.
+the lesson from v1 → v2 → v3: don't build infrastructure you can install. my custom hooks taught me what i needed. superpowers delivers it better. codex fills the gap that no single-model system can — a second pair of eyes on the actual output.
 
-three minds, three perspectives, one plan.
+the best multi-model workflow isn't "throw models at every stage." it's "use the right tool at the right stage." superpowers for process. codex for verification. done.
