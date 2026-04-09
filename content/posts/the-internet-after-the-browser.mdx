@@ -1,0 +1,129 @@
+---
+title: "The Internet After the Browser"
+description: "Browsers standardized software for humans. They are the wrong long-term abstraction for agents."
+date: "2026-04-09"
+created: "2026-04-09"
+updated: "2026-04-09"
+tags: ["agents", "web", "protocols", "ai", "internet"]
+published: true
+---
+
+I spend a lot of time thinking about agents inside the software development loop. The more interesting question is what happens when those agents leave the editor and meet the broader internet.
+
+Right now, the default answer is simple: they use browsers. They search, click, scrape, crawl, and submit forms.
+
+That works. But it is still a retrofit.
+
+The browser is one of the great interfaces in computing. It standardized how humans reach software. But agents are not humans. They do not need tabs, layouts, buttons, cookie banners, or navigation chrome. They need direct access to resources.
+
+If agents are going to do real work on our behalf, the browser cannot be the long-term interface. At best, it is a compatibility layer between the internet we have and the one that is coming.
+
+## Browsers Are for People
+
+A website is optimized for human consumption: layout, navigation, branding, forms, search engine discovery, logins, subscriptions, and all the UI wrapped around them.
+
+That is all useful. But it is presentation.
+
+When an agent uses a website, it is not interacting with the underlying resource in its native form. It is interpreting a human-facing wrapper around it.
+
+That distinction matters. Scraping HTML, inferring intent from page copy, and reverse-engineering flows from buttons is clever engineering, but it is still reverse engineering.
+
+If every meaningful agent workflow starts with "open a page and figure out what the designer meant," we are building the future on the wrong layer.
+
+## The Browser Is a Compatibility Layer
+
+This is the part I keep coming back to: browsers are not the destination for agents. They are the bridge.
+
+They matter because the internet is full of systems that only expose themselves through human interfaces. For a while, agents will need to use them the way RPA tools did: open the page, imitate the user, and hope the surface is stable enough to survive automation.
+
+But that should feel temporary, because it is.
+
+The long-term shape is not better scraping. It is direct, structured surfaces built for machine interaction first and human interfaces second.
+
+That does not mean websites disappear. It means the website stops being the only serious interface.
+
+## What Comes After the Browser
+
+An agent-native surface does not need to look like a website at all.
+
+At minimum, it should expose durable information about a resource, a direct way to make requests, and clear rules for what an agent can and cannot do. On higher-trust actions, it will also need stronger identity, permissions, and approval models. But those are downstream of the more basic shift.
+
+The basic shift is this: agents should be talking to systems, not reading pixels.
+
+Once you have that, a resource becomes something more than a page. It becomes something another system can actually work with.
+
+## Not Everything Needs a Full Agent
+
+This matters because people sometimes hear "agent-native" and imagine every business needing an elaborate autonomous assistant.
+
+I do not think that is the right mental model.
+
+Some resources will absolutely have rich agents behind them. Others will not need much dynamic behavior at all.
+
+A local lawn care business is a good example. Most of what a customer or agent needs to know is relatively static: service area, pricing range, availability rules, intake questions, contact preferences, and proof of work or reviews.
+
+Today that lives on a website, maybe with a phone number or a contact form. Tomorrow it may be something closer to `&kevinslawnmowing`: a stable, agent-facing resource with structured information and a direct way to inquire.
+
+In a world after the browser, that same business could expose a structured surface and a communication channel. It would not need to look like a chatbot. It would not need to simulate a human conversation unless that was actually useful. It would simply need to be reachable in a standard way.
+
+Some resources will be little more than well-scoped information plus an inquiry endpoint. That is still enough to be useful.
+
+In that sense, a lot of agent-facing infrastructure will feel more like structured public memory than a dynamic application. Much of the information can be public and durable. The difference is that it is presented for machine understanding first, with human interfaces layered on top when needed.
+
+## What the Experience Looks Like
+
+The easiest way to see the value is through a simple example.
+
+Say I tell my agent: I need someone to mow my lawn next week. My budget is between $50 and $100. I care about reliability more than speed.
+
+A useful system should look something like this:
+
+1. My agent understands the request and the relevant preferences.
+2. It reaches out to multiple lawn care resources or provider agents.
+3. Those resources respond with structured availability, pricing, constraints, and confidence.
+4. My agent compares the options against my budget and preferences.
+5. I get back one or two strong recommendations instead of a pile of tabs.
+
+That flow is very different from "search Google, open ten sites, scrape their pages, find a form, guess what to submit, and hope the result is useful."
+
+The current web can approximate that with enough automation.
+
+But again, that is retrofit.
+
+The better model is direct interaction with the resource itself, with the browser falling back to a secondary role instead of being the default transport.
+
+## This Is Bigger Than Automation
+
+The real shift here is not just convenience.
+
+It is that the internet starts to look less like a collection of pages and more like a network of accessible resources.
+
+Some of those resources will belong to people. Some to organizations. Some to software products. Some to local businesses. Some to knowledge bases. Some to marketplaces.
+
+The human-facing website does not disappear. It remains important. But it stops being the only serious surface.
+
+That is why I think "agents browsing the web" is an intermediate phase, not the destination. It is a bridge from a human-native internet to an agent-native one.
+
+Scrapers, crawlers, and browser automation will still matter for a long time. They will be the compatibility layer for the old world.
+
+But the new world will increasingly expose itself directly.
+
+## Why This Matters Now
+
+We already spend a lot of time talking about model quality, agent memory, and tool use. Those are useful conversations. But they mostly focus on what happens inside a single runtime.
+
+The next question is what happens between agents and the outside world.
+
+If agents are going to be first-class actors, they need first-class ways to interact with first-class resources. Otherwise we are asking them to do serious work through surfaces that were never designed for them.
+
+That is the opportunity I see.
+
+Not just better agent wrappers. Not just smarter browser automation. A new standard surface for discovery, communication, and action.
+
+You can already see early signs of this shift in the open. Google's [Agent2Agent protocol](https://github.com/a2aproject/A2A), launched in 2025 and later contributed into a Linux Foundation project, is directionally right. It treats agent interoperability as protocol work: capability discovery, task and state management, user experience negotiation, and secure collaboration. In other words, serious people are already building for a world where agents talk to systems and to each other more directly.
+
+Most people will not care about that yet, because protocols are boring until they suddenly are not. That is fine. The browser was also infrastructure before it became the default interface to modern software. The important part is not whether A2A is the final answer. It is that the industry has started admitting the browser is not the final answer either.
+
+The tooling is still rough. The patterns are still emerging. But the direction feels obvious: agents will need something more native than the browser, and the systems that enable that cleanly will matter.
+
+That is the future I believe we are building toward. And it is a big part of why I think we at [The & Company](https://and.com) are working on the right things.
