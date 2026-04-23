@@ -1,0 +1,255 @@
+---
+title: "generation is cheap. clarity wins."
+description: "if code generation is cheap and coding is close to solved, the scarce resource becomes focus. gossip is my bet on building a compass instead of another spaceship."
+date: "2026-04-18"
+created: "2026-04-18"
+updated: "2026-04-18"
+tags: ["ai", "gossip", "focus", "clarity", "agentic-development"]
+published: false
+---
+
+one take i can't shake lately:
+
+- generation is cheap
+- coding is close enough to solved
+- focus and clarity are the cheat codes
+
+those cheat codes are expensive.
+
+whoever has them wins.
+
+## tldr
+
+- the bottleneck moved from code production to decision quality
+- shipping a first pass is cheap now. choosing the right target is not
+- the dangerous thing is not slow teams. it's fast teams pointed at the wrong thing
+- most agent products are spaceships. they help you move
+- i want a compass. something that helps you decide where to go
+- that's the bet behind gossip
+
+## coding is solved enough
+
+provocative phrasing. yes.
+
+still true.
+
+no, not every domain.
+
+if you're doing kernel work, safety-critical systems, deep infra, weird compiler edges, fine. coding is not "solved."
+
+but for a huge amount of startup work?
+
+it kind of is.
+
+not in the sense that every line is correct.
+
+in the sense that:
+
+- you can get to a credible first implementation fast
+- you can explore multiple product directions in parallel
+- you can generate UI, backend glue, tests, migrations, and docs on demand
+- you can ship more code than you can think through
+
+that last line is the new problem.
+
+for years, the constraint was "can we build it?"
+
+now the constraint is:
+
+- should we build it?
+- what exactly are we building?
+- what would make us kill it?
+- what evidence would change our mind?
+
+coding did not stop mattering.
+
+it stopped being the scarce thing.
+
+## what got expensive
+
+here's the shift:
+
+| old bottleneck | new bottleneck |
+| --- | --- |
+| producing code | choosing the target |
+| implementation speed | clarity on what good looks like |
+| getting more builders | filtering bad directions early |
+| shipping features | knowing which features deserve to exist |
+| local optimization | system-level judgment |
+
+this is why i keep saying focus and clarity are the cheat codes.
+
+they are not soft skills in the hand-wavy sense.
+
+they are economic advantages.
+
+if generation is cheap, bad decisions compound faster.
+
+the team with sharper focus gets leverage on every model.
+
+the team with blurry goals gets noise at machine speed.
+
+## most people are optimizing the wrong layer
+
+the market is full of "look how much this agent can do."
+
+cool.
+
+that is not the scarce resource anymore.
+
+we have plenty of spaceships now:
+
+- agents that write code
+- agents that open PRs
+- agents that browse docs
+- agents that run tests
+- agents that swarm across tasks
+
+all useful.
+
+also incomplete.
+
+because motion is not the same thing as direction.
+
+when generation is cheap, the highest leverage product is not another system that says "i can go faster."
+
+it's the system that says:
+
+- here's where we are still foggy
+- here's what is missing
+- here's the next move
+- here's the evidence threshold for shipping
+- here's when to kill the idea
+
+that is what we're trying to build at gossip.
+
+![spaceship energy](https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExYWp2MnRnNjIzd2NwY2d0cHo0MnY0OXdkaHFtcmg2bDJtdG9paGJ6bCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Tu5YzWenRCrQZEnGp5/giphy.gif)
+
+## what we're building at gossip
+
+the simplest version:
+
+gossip is a deliberation room.
+
+not a single chatbot.
+not a swarm for the sake of the swarm.
+not a router pretending to be wisdom.
+
+**the room** has durable agents with real roles, memory, and the ability to disagree.
+
+each agent silently decides whether it wants the floor.
+
+**the room** does not ask an llm who should speak next. that part is mechanical.
+
+raised hands come in.
+**the room** scores them.
+the most relevant voice gets the turn.
+
+that matters because i do not want fake orchestration theater.
+
+i want a system that gets clearer over time.
+
+so the core primitive in gossip is not "productivity."
+
+it's clarity.
+
+right in the code:
+
+```ts
+type AssessResult = {
+  clarityScore: number
+  phase: "foggy" | "shaping" | "ready"
+  summary: string
+  missing: string[]
+  nextMove: string
+  verdict: "ship" | "kill" | "escalate" | "keep_going"
+  confidence: number
+}
+```
+
+that model says a few things i care about:
+
+- a conversation can be active and still be foggy
+- "keep going" is a valid outcome
+- "ship" without confidence is fake
+- "kill" is a first-class verdict
+- **the room** must name what is still missing
+- **the room** must produce one concrete next move
+
+that last part matters a lot.
+
+most product conversations feel smart and still go nowhere.
+
+they create language.
+not movement.
+
+gossip is opinionated about that.
+
+if **the room** says "ship," it should be able to hand back a real artifact.
+
+not vibes. not a summary. something executable.
+
+even the verdict gate is explicit:
+
+```ts
+if (a.verdict === "ship" && a.confidence >= 7) return "ship";
+if (a.verdict === "kill" && a.confidence >= 6) return "kill";
+```
+
+and if the founder pushes back, asks a real clarifying question, or changes scope, **the room** reopens.
+
+no fake consensus.
+
+that phrase is buried in the prompts right now and i think it might be the whole thing:
+
+> do NOT flatten a live, credible dissent into fake consensus.
+
+yes.
+
+exactly.
+
+## why i care so much about this
+
+because the new failure mode is not "we couldn't build."
+
+the new failure mode is "we built the wrong thing with extreme confidence."
+
+ai makes that easier, not harder.
+
+you can generate a lot of plausible paths.
+
+you can get seduced by fluency.
+
+you can mistake motion for convergence.
+
+you can ship an answer before you've earned clarity.
+
+so the product category i'm interested in is not "how do we get more output?"
+
+it's:
+
+- how do we surface the real disagreement
+- how do we make missing pieces legible
+- how do we stop when **the room** is still foggy
+- how do we move only when the call is clear
+
+that is a different kind of agent product.
+
+less autopilot.
+more judgment.
+
+## the bet
+
+my bet is simple:
+
+- code generation keeps getting cheaper
+- execution keeps getting commoditized
+- the premium moves to taste, judgment, focus, and clarity
+
+so i do not want to build the loudest builder.
+
+i want to build the system that helps a team decide what is worth building at all.
+
+every other agent is a spaceship.
+
+i want the compass.
