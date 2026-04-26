@@ -6,6 +6,7 @@ import { Mermaid } from "./mermaid";
 import { CodeBlock } from "./code-block";
 import { ThemedImage } from "./themed-image";
 import { Updated } from "./updated";
+import { Tweet } from "./tweet";
 
 function extractText(node: ReactNode): string {
   if (typeof node === "string") return node;
@@ -19,6 +20,7 @@ function extractText(node: ReactNode): string {
 export const mdxComponents: MDXComponents = {
   ThemedImage,
   Updated,
+  Tweet,
   h1: ({ children, id }) => (
     <h1 id={id} className="mt-12 mb-4 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
       {children}
