@@ -1,0 +1,342 @@
+---
+title: "proof gates, not feature increments"
+description: "autonomous agents do not become trustworthy by gaining more features. they become trustworthy by passing small, repeatable proof gates."
+date: "2026-04-25"
+created: "2026-04-25"
+updated: "2026-04-25"
+tags: ["ai", "agents", "autonomy", "evaluation", "workflow"]
+published: true
+---
+
+i kept trying to make Caspian more autonomous by adding more things it could do.
+
+more memory.
+
+more tools.
+
+more task types.
+
+more dashboard controls.
+
+more parallel workers.
+
+more notifications.
+
+more ways for it to reach me when it got stuck.
+
+all reasonable ideas.
+
+also not the thing.
+
+the sharper line was:
+
+> you do not need more features. you need evidence.
+
+or shorter:
+
+**proof gates, not feature increments.**
+
+## the trap
+
+when an agent system feels weak, the obvious instinct is to add capability.
+
+if it cannot finish the work, give it more tools.
+
+if it forgets context, add memory.
+
+if it gets stuck, add escalation.
+
+if it is too quiet, add notifications.
+
+if one agent is not enough, add five.
+
+that all feels like progress because feature work is visible. you can point to the new button, the new tool, the new route, the new agent role.
+
+but autonomy is not proven by surface area.
+
+autonomy is proven by a loop.
+
+can the system receive a bounded job, understand the goal, do the work, notice when it is stuck, ask the right question, stop when it should stop, and produce an artifact you trust?
+
+if that loop does not work, more features mostly create more ways to fail.
+
+## notifications are not a command plane
+
+one of my early mistakes was treating notifications like control.
+
+Caspian could send me updates.
+
+"research complete."
+
+"task still waiting."
+
+"run failed."
+
+that felt useful. and it was.
+
+but a notification firehose is not a command plane.
+
+the real question was not "can the agent tell me something happened?"
+
+the real question was:
+
+- can i tell it to stop?
+- can i tell it to change focus?
+- can i tell it to retry with a narrower scope?
+- can i see what it is doing right now?
+- can i inspect why it made a decision?
+- can i kill a bad run before it wastes more time?
+
+until those are reliable, the system is not meaningfully autonomous. it is just active.
+
+active is not the same as useful.
+
+busy is not the same as trustworthy.
+
+## the wrong order
+
+the tempting order looks like this:
+
+1. add memory
+2. add more tools
+3. add multiple agents
+4. add dashboard controls
+5. add escalation
+6. add evals later
+
+that order is backwards.
+
+it makes the system more complicated before you know what "working" means.
+
+the better order is:
+
+1. define one narrow loop
+2. make it controllable
+3. make it observable
+4. define the proof gate
+5. run the gate repeatedly
+6. only then add more capability
+
+the hard part is not making the agent do more.
+
+the hard part is knowing whether what it already does is real.
+
+## what a proof gate is
+
+a proof gate is a small, repeatable test of trust.
+
+not a unit test exactly.
+
+not a product milestone exactly.
+
+more like a contract:
+
+> before we add more autonomy, this loop must clear this bar.
+
+for example:
+
+**gate: bounded task completion**
+
+given a small, real issue in a repo, the agent must produce a working patch, tests, and a useful summary in under N minutes, 4 out of 5 times.
+
+**gate: escalation quality**
+
+when blocked, the agent must ask a question a human can answer in one reply. no vague "how should i proceed?" no dumping the whole problem back.
+
+**gate: stop condition**
+
+when the task is complete, the agent must stop cleanly. no wandering into adjacent refactors. no "while i was here" changes.
+
+**gate: reviewability**
+
+the result must be easy to inspect: changed files, test evidence, decision trail, known risks, and rollback path.
+
+**gate: commandability**
+
+the human must be able to pause, redirect, resume, or kill the run through a reliable control surface.
+
+each gate asks a boring question:
+
+can this thing be trusted one inch farther?
+
+## why feature increments lie
+
+feature increments can hide the real problem.
+
+memory can hide poor task framing.
+
+tools can hide weak judgment.
+
+multiple agents can hide the absence of a decision procedure.
+
+dashboards can hide lack of control.
+
+notifications can hide lack of observability.
+
+you feel like the system is getting stronger because it has more parts.
+
+but the proof loop may still be failing.
+
+the agent still cannot be trusted to finish a bounded job.
+
+or it cannot explain itself.
+
+or it cannot stop.
+
+or it asks bad questions.
+
+or it succeeds once in a demo and fails the next four times.
+
+that last one matters. a demo is not a gate.
+
+the gate has to run more than once.
+
+## autonomy starts with boring control
+
+there is a reason the first serious layer is not intelligence.
+
+it is control.
+
+can i start it?
+
+can i stop it?
+
+can i see state?
+
+can i replay what happened?
+
+can i tell the difference between "working," "blocked," "done," and "lost"?
+
+can the system tell the difference?
+
+that sounds less exciting than "multi-agent autonomous software engineer."
+
+good.
+
+most trustworthy systems are boring at the control layer.
+
+planes are exciting in the air. the checklist is boring.
+
+databases are magical when they work. transactions are boring.
+
+agents should be the same.
+
+the visible intelligence can be impressive later.
+
+first, the loop has to be governed.
+
+## the gate before the feature
+
+the move i would make earlier now:
+
+before adding a feature, write the gate it is supposed to help pass.
+
+not:
+
+"add Discord integration."
+
+instead:
+
+"the agent must ask for help within 2 minutes when blocked, include the exact decision it needs, and resume correctly after one human reply."
+
+maybe Discord is the right implementation.
+
+maybe it is not.
+
+not:
+
+"add memory."
+
+instead:
+
+"the agent must avoid repeating the same failed approach across three runs on related tasks."
+
+maybe memory helps.
+
+maybe a run log and failure classifier helps more.
+
+not:
+
+"add parallel agents."
+
+instead:
+
+"the system must explore two candidate fixes and choose one based on test evidence, without mixing their diffs."
+
+maybe multiple agents help.
+
+maybe they just create coordination overhead.
+
+the proof gate keeps the feature honest.
+
+## what this changes
+
+it changes product planning.
+
+the roadmap stops being a list of capabilities.
+
+it becomes a list of trust thresholds.
+
+instead of:
+
+- memory
+- dashboard
+- phone calls
+- parallel tasks
+- better prompts
+
+you write:
+
+- can complete one real repo task 4 out of 5 times
+- can ask one crisp escalation question when blocked
+- can preserve context across a restart
+- can stop without scope creep
+- can produce a reviewable artifact a maintainer would accept
+
+those are less glamorous.
+
+they are also much harder to fake.
+
+## the uncomfortable part
+
+proof gates slow you down at the exact moment you want to move faster.
+
+that is why they work.
+
+they force you to admit whether the system is actually improving or just becoming more elaborate.
+
+they also make bad ideas visible early.
+
+if a feature cannot name the gate it improves, it might be a distraction.
+
+if a gate keeps failing, the answer is probably not "add more features."
+
+it is probably:
+
+- narrow the loop
+- improve observability
+- fix the control surface
+- make the success condition less fuzzy
+- remove autonomy until the system earns it back
+
+that last one is hard.
+
+but autonomy should be earned.
+
+## the rule
+
+for agent products, i now trust this rule:
+
+**never add autonomy faster than you add proof.**
+
+not because features are bad.
+
+features are how the system grows.
+
+but proof is how the system becomes real.
+
+without proof gates, you are mostly accumulating impressive demos.
+
+with proof gates, you start building trust.
+
+and trust is the product.

@@ -9,6 +9,7 @@
 - [x] **CBC Acceptance Criteria** — `/posts/cbc-acceptance-criteria` — Context-Behavior-Constraint format for testable AC
 - [x] **Vibecheck** — `/posts/vibecheck` — Auditing implementation against the plan
 - [x] **Handoff** — `/posts/handoff` — Deliberate context reset before compaction
+- [x] **Proof Gates, Not Feature Increments** — `/posts/proof-gates-not-feature-increments` — Agent autonomy needs evidence loops, not more surface area
 
 ## In Progress
 
