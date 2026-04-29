@@ -244,6 +244,14 @@ routed through my chatgpt subscription via pi:
 
 the lesson generalizes. if you are going to optimize prompts at scale, do not optimize against metered APIs. find a coding harness that routes through a subscription you already pay for, and put everything behind it. the cost model changes the engineering posture more than any framework choice.
 
+## post-merge update
+
+a few days after the first run, i drove a real thread end-to-end against the optimized pack. two new agent turns landed cleanly through the v2 instructions: a `verify` move that produced a 702-character utterance, then another `verify` that produced a 430-character one. trace entries had `signatureName: "speak"` with valid enum values, zero parse failures, zero error logs. the boot path read `instructions_len: 3789` from `active.json` exactly as designed.
+
+so the loop is not just compiled. it is shipped. PR merged into main, optimized prompt live in production for the next conversation that opens a thread.
+
+next step is the autopilot. auto-trigger the compile when the trace gate trips again. gate auto-apply on `instructions_changed_from_baseline=true` plus a substantive-length check. hot-reload the running server. post-apply re-score so a regressing pack rolls itself back. that ticket is filed. when it lands, "stop hand-tuning prompts" stops being a slogan and starts being a cron job.
+
 ## what's next
 
 - v3 packs: per-persona voice optimization. run MIPRO once per persona against a persona-specific subset of traces. this is the v1 pack format from earlier, done correctly.
@@ -255,7 +263,7 @@ the lesson generalizes. if you are going to optimize prompts at scale, do not op
 
 the +0.7 is not the win.
 
-the closed loop is the win. traces in, optimized prompts out, fresh traces measure the lift.
+the closed loop is the win. traces in, optimized prompts out, fresh traces measure the lift, the next compile reads the receipts.
 
 stop hand-tuning prompts.
 
