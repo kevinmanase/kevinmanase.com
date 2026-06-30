@@ -1,0 +1,329 @@
+---
+title: "agents guiding agents"
+description: "what changed in my workflow after april: mobile-first orchestration, agent loops, proof gates, and using agents to manage other agents."
+date: "2026-06-30"
+created: "2026-06-30"
+updated: "2026-06-30"
+tags: ["ai", "agents", "workflow", "claude-code", "codex", "mobile"]
+published: true
+---
+
+since april, my workflow has changed more than my stack.
+
+same tools, mostly.
+
+different posture.
+
+in april i was writing about prompts as programs, proof gates, and the internet after the browser. those were the right ideas. but they were still mostly framed as things i was building toward.
+
+now they are how i work every day.
+
+not in a clean lab way. in the messy way. broken deploys. half-failed workflows. agents stepping on each other's worktrees. production rollouts from a phone. claude writing Linear tickets while i verify the actual state from logs and APIs.
+
+this is the part i think is under-discussed.
+
+ai coding is not only "ask the model to write code."
+
+that is the boring version.
+
+what matters now is the operating system around the model.
+
+<ThemedImage
+  lightSrc="/diagrams/agents-guiding-agents-light.svg"
+  darkSrc="/diagrams/agents-guiding-agents-dark.svg"
+  alt="Agents guiding agents loop: human operator, maker lane, ops lane, checker, state sink, proof gate, approval, and next loop"
+  className="my-8 rounded-xl border border-zinc-200 dark:border-zinc-800"
+/>
+
+## the april version
+
+april was about constraints.
+
+- prompts are programs
+- proof gates beat feature increments
+- the browser is a compatibility layer for agents
+- generation is cheap, clarity wins
+
+that was the foundation.
+
+if a prompt is part of production behavior, it should be versioned, measured, and improved against traces. if an agent claims it is done, there should be a proof gate. if agents are going to work on the internet, they need something better than pretending to be a tired human clicking through forms.
+
+all of that still holds.
+
+but the last few months made the next layer obvious.
+
+## the may version
+
+may was mostly reps.
+
+less theory. more muscle memory.
+
+what happens when claude makes a plan and codex reviews the plan? what happens when a second agent checks the first one? what happens when the verifier is not a vibe but a command that returns zero or nonzero?
+
+my workflow started to settle into a pattern:
+
+```text
+human intent
+→ agent makes plan
+→ another agent critiques it
+→ implementation happens in a worktree
+→ tests / typecheck / logs verify it
+→ state gets written somewhere durable
+→ human approves the irreversible step
+```
+
+that last line matters.
+
+i do not want agents merging, deploying, emailing, posting, or spending money because they sound confident.
+
+i want them to prepare the move and show receipts.
+
+## the phone changed the shape
+
+one weird detail: i do most of this from my phone now.
+
+probably 90%.
+
+not because mobile is a better IDE. it is not.
+
+because i am not using the phone as an IDE. i am using it as a command surface.
+
+that distinction matters.
+
+when the work is:
+
+- inspect this failing run
+- split this into two agent lanes
+- ask claude to patch the narrow thing
+- ask codex to independently look for a workaround
+- verify the result from GitHub logs
+- file the follow-up tickets
+- widen the rollout after the canary converges
+
+then the phone is enough.
+
+not for editing every line. for steering the system.
+
+that is the shape i keep coming back to: the human as operator, not typist.
+
+![operator at the wheel](https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExaXFzdWd3anlvOXhsMTNtN251YWVlY29obWwxaGY3ZW5uMTE2Z290eiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/26BRHhaIqk9M2uU6Y/giphy.gif)
+
+## agents guiding agents
+
+this is the part that feels new.
+
+not one agent doing a task.
+
+agents guiding agents.
+
+one agent investigates. another patches. another reviews. another writes the tracker ticket. another verifies the public state. sometimes the best move is not "ask claude to fix it." it is "ask claude to implement the durable fix, ask codex to look for the safe immediate workaround, and keep hermes as the operator that decides which path is allowed to touch production."
+
+that sounds like extra ceremony until you need it.
+
+then it feels obvious.
+
+because the failure mode of a single-agent workflow is not that the agent is dumb. the failure mode is that it collapses too many roles into one context.
+
+maker. checker. operator. historian. release manager. support engineer.
+
+those should not always be the same mind.
+
+## a real example
+
+we had a production runtime skills rollout that should have been boring.
+
+it was not boring.
+
+first, the normal workflow failed before posting the desired release. the skills archive built, but Node KMS signing hit a transient impersonated OAuth failure:
+
+```text
+unable to impersonate
+Invalid response body while trying to fetch oauth2/v4/token
+Premature close
+```
+
+rerun failed the same way.
+
+at that point the move was not "keep clicking rerun."
+
+the move was to split the problem.
+
+```text
+lane 1: durable fix
+  add a narrow retry around transient KMS auth / transport failures
+  do not retry IAM failures
+  add tests
+
+lane 2: immediate ops path
+  preserve the workflow contract
+  use gcloud kms asymmetric-sign from GitHub Actions
+  dry-run first
+  then production canary
+  then full rollout with behavior proof
+```
+
+that second lane found the path that got us unstuck.
+
+gcloud signing worked, but the first dry run failed because the signature file was raw bytes and i treated it like base64 text. good. that is why dry runs exist. preflight signature verification caught it before anything touched production.
+
+fixed that. dry run passed.
+
+then canary.
+
+then full rollout.
+
+then a separate production convergence API check, because the workflow's own convergence condition was too weak.
+
+that last part is the important part.
+
+## the workflow lied
+
+not maliciously. structurally.
+
+for `cohort=all`, the runtime OTA publish script exited success after one runtime was stably on the target release.
+
+one.
+
+for an all-cohort rollout.
+
+that is a perfect example of why "the workflow is green" is not always the same as "the system is safe."
+
+the log said success while the fleet still showed divergent runtimes. later the fleet converged, and the direct production API check showed:
+
+```text
+converged: 7
+divergent: 0
+desiredReleaseStale: 0
+legacy: 0
+stale: 1
+errors: []
+```
+
+so the rollout ended up fine.
+
+but the proof gate was wrong.
+
+we filed two tickets:
+
+- retry or replace the flaky KMS signing path
+- fix all-cohort convergence so it waits for the active fleet, not one runtime
+
+this is the kind of thing agents are good at surfacing if you make them show receipts.
+
+this is also the kind of thing agents will happily paper over if you ask for vibes.
+
+## the pattern
+
+most people are still talking about prompt quality.
+
+fine. prompts matter.
+
+but the bigger leverage is the loop around the prompt.
+
+```text
+trigger
+context
+agent lane
+independent checker
+objective gate
+durable state
+human approval
+```
+
+that is the unit.
+
+not the chat.
+
+not the model.
+
+not the prompt.
+
+the loop.
+
+![the machine keeps moving](https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExaXN6Y3psdzFjd3Y3aGYwYWVtbG5raGM1NTNnNTVtbWN6MWtwOGoweCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/8vyrFuCn7X4YyufYLi/giphy.gif)
+
+once you see that, a lot of product decisions get simpler.
+
+- a chat transcript is not state
+- a green check is not proof unless the gate is right
+- a second agent is not useful unless it has a different job
+- a workflow is not safe unless it knows when to stop
+- a mobile interface is enough if it controls the loop instead of pretending to be an IDE
+
+## what i would tell someone building this
+
+start smaller than you want.
+
+one repeated task.
+
+one skill file.
+
+one state sink.
+
+one objective verifier.
+
+one human approval gate before anything irreversible.
+
+then run it until it breaks.
+
+when it breaks, do not only patch the symptom. ask what role collapsed.
+
+was the maker grading its own work?
+
+was the stop condition soft?
+
+was the state trapped in chat?
+
+was the connector auth assumed instead of checked?
+
+was the workflow green for the wrong reason?
+
+those are the real bugs.
+
+## why this matters
+
+i do not think the next serious AI coding advantage is "who has the best prompt."
+
+that was a phase.
+
+useful phase. not the final one.
+
+the advantage is knowing how to run agents as a system:
+
+- how to split work between agents
+- how to isolate their file systems
+- how to force proof before trust
+- how to preserve state across sessions
+- how to let humans steer from lightweight surfaces
+- how to keep irreversible actions behind approval
+- how to turn failures into durable improvements
+
+this is the work now.
+
+it is less glamorous than a demo where an agent builds an app from scratch.
+
+it is also much closer to how real software gets made.
+
+## the takeaway
+
+agents are not replacing the engineer.
+
+they are changing where the engineering happens.
+
+less typing.
+
+more orchestration.
+
+less prompting.
+
+more gates.
+
+less "did the model sound right?"
+
+more "what did the system prove?"
+
+that is where i am spending my time now.
+
+building the loop.
+
+staying the engineer.
