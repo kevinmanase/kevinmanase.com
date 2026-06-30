@@ -22,9 +22,11 @@ not in a clean lab way. in the messy way. broken deploys. half-failed workflows.
 
 this is the part i think is under-discussed.
 
-ai coding is not only "ask the model to write code."
+ai coding is not "ask the model to write code."
 
-that is the boring version.
+that is how slop gets created.
+
+the work now is preventing slop.
 
 what matters now is the operating system around the model.
 
@@ -82,11 +84,21 @@ i want them to prepare the move and show receipts.
 
 one weird detail: i do most of this from my phone now.
 
-probably 90%.
+probably 95% by voice.
 
 not because mobile is a better IDE. it is not.
 
 because i am not using the phone as an IDE. i am using it as a command surface.
+
+more specifically, i am using it like a walkie-talkie for agents.
+
+i talk to Hermes. Hermes runs the room.
+
+sometimes that means one main agent guiding Claude and Codex through tmux. sometimes it means Hermes guiding its own subagents, and those subagents guiding Claude or Codex or both through tmux so the coding agents do not complain about being nested inside another agent workflow.
+
+that sounds ridiculous written out.
+
+it is also the best interface i have found.
 
 that distinction matters.
 
@@ -104,6 +116,14 @@ then the phone is enough.
 
 not for editing every line. for steering the system.
 
+voice is the unlock.
+
+i can say much more than i can type. the ideas flow better. i can express myself closer to the speed of thought instead of the speed of thumbs.
+
+it also changes my energy.
+
+i can walk. move around. get away from the desk. recharge faster. come back with better ideas.
+
 that is the shape i keep coming back to: the human as operator, not typist.
 
 ![operator at the wheel](https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExaXFzdWd3anlvOXhsMTNtN251YWVlY29obWwxaGY3ZW5uMTE2Z290eiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/26BRHhaIqk9M2uU6Y/giphy.gif)
@@ -116,7 +136,15 @@ not one agent doing a task.
 
 agents guiding agents.
 
+hermes is usually the orchestrator.
+
 one agent investigates. another patches. another reviews. another writes the tracker ticket. another verifies the public state. sometimes the best move is not "ask claude to fix it." it is "ask claude to implement the durable fix, ask codex to look for the safe immediate workaround, and keep hermes as the operator that decides which path is allowed to touch production."
+
+sometimes hermes is guiding claude and codex directly in tmux panes.
+
+sometimes hermes is guiding subagents, and those subagents are the ones driving claude or codex.
+
+it depends on the shape of the work.
 
 that sounds like extra ceremony until you need it.
 
@@ -127,6 +155,16 @@ because the failure mode of a single-agent workflow is not that the agent is dum
 maker. checker. operator. historian. release manager. support engineer.
 
 those should not always be the same mind.
+
+review is its own loop too.
+
+greptile is one of the checkers. let it assign a score. fix until it is 5/5. repeat.
+
+claude workflows are useful when i need a council. review council, architecture council, whatever the problem needs. sometimes that means a normal handful of agents. sometimes it means 26 agents and an absolutely stupid amount of tokens.
+
+expensive.
+
+also sometimes worth it.
 
 ## a real example
 
@@ -223,7 +261,8 @@ but the bigger leverage is the loop around the prompt.
 ```text
 trigger
 context
-agent lane
+hermes orchestration
+agent lane(s)
 independent checker
 objective gate
 durable state
