@@ -22,22 +22,22 @@ export const mdxComponents: MDXComponents = {
   Updated,
   Tweet,
   h1: ({ children, id }) => (
-    <h1 id={id} className="mt-12 mb-4 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+    <h1 id={id} className="mt-12 mb-4 text-3xl font-semibold tracking-tight text-ink">
       {children}
     </h1>
   ),
   h2: ({ children, id }) => (
-    <h2 id={id} className="mt-10 mb-4 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+    <h2 id={id} className="mt-10 mb-4 text-2xl font-semibold tracking-tight text-ink">
       {children}
     </h2>
   ),
   h3: ({ children, id }) => (
-    <h3 id={id} className="mt-8 mb-3 text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+    <h3 id={id} className="mt-8 mb-3 text-xl font-semibold tracking-tight text-ink">
       {children}
     </h3>
   ),
   p: ({ children }) => (
-    <p className="my-5 leading-7 text-zinc-700 dark:text-zinc-300">{children}</p>
+    <p className="my-5 leading-7 text-ink">{children}</p>
   ),
   a: ({ href, children }) => {
     const isExternal = href?.startsWith("http");
@@ -47,7 +47,7 @@ export const mdxComponents: MDXComponents = {
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-zinc-900 dark:text-zinc-100 underline decoration-zinc-400 dark:decoration-zinc-600 underline-offset-2 hover:decoration-zinc-900 dark:hover:decoration-zinc-100 transition-colors"
+          className="text-blue underline decoration-blue/40 underline-offset-2 hover:decoration-blue transition-colors"
         >
           {children}
         </a>
@@ -56,25 +56,25 @@ export const mdxComponents: MDXComponents = {
     return (
       <Link
         href={href || "#"}
-        className="text-zinc-900 dark:text-zinc-100 underline decoration-zinc-400 dark:decoration-zinc-600 underline-offset-2 hover:decoration-zinc-900 dark:hover:decoration-zinc-100 transition-colors"
+        className="text-blue underline decoration-blue/40 underline-offset-2 hover:decoration-blue transition-colors"
       >
         {children}
       </Link>
     );
   },
   ul: ({ children }) => (
-    <ul className="my-5 ml-6 list-disc space-y-2 text-zinc-700 dark:text-zinc-300">
+    <ul className="my-5 ml-6 list-disc space-y-2 text-ink">
       {children}
     </ul>
   ),
   ol: ({ children }) => (
-    <ol className="my-5 ml-6 list-decimal space-y-2 text-zinc-700 dark:text-zinc-300">
+    <ol className="my-5 ml-6 list-decimal space-y-2 text-ink">
       {children}
     </ol>
   ),
   li: ({ children }) => <li className="leading-7">{children}</li>,
   blockquote: ({ children }) => (
-    <blockquote className="my-6 border-l-2 border-zinc-300 dark:border-zinc-700 pl-6 italic text-zinc-600 dark:text-zinc-400">
+    <blockquote className="my-6 border-l-2 border-blue/40 pl-6 italic text-dim">
       {children}
     </blockquote>
   ),
@@ -86,7 +86,7 @@ export const mdxComponents: MDXComponents = {
       );
     }
     return (
-      <code className="rounded bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 text-sm font-mono text-zinc-800 dark:text-zinc-200">
+      <code className="rounded bg-panel border border-rule px-1.5 py-0.5 text-sm font-mono text-ink">
         {children}
       </code>
     );
@@ -101,11 +101,11 @@ export const mdxComponents: MDXComponents = {
   img: ({ src, alt }) => {
     if (!src) return null;
 
-    // Handle diagrams (SVGs in /diagrams/) - dark mode background
+    // Handle diagrams (SVGs in /diagrams/) - always render on a light plate for legibility
     if (src.includes("/diagrams/") && src.endsWith(".svg")) {
       return (
         <span className="my-8 block">
-          <span className="block bg-white dark:bg-zinc-100 rounded-xl p-4 shadow-sm dark:shadow-zinc-900/50">
+          <span className="block bg-white rounded-xl p-4 border border-rule">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={src}
@@ -142,21 +142,21 @@ export const mdxComponents: MDXComponents = {
       </span>
     );
   },
-  hr: () => <hr className="my-8 border-zinc-200 dark:border-zinc-800" />,
+  hr: () => <hr className="my-8 border-rule" />,
   table: ({ children }) => (
     <div className="my-6 overflow-x-auto">
-      <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
+      <table className="min-w-full divide-y divide-rule">
         {children}
       </table>
     </div>
   ),
   th: ({ children }) => (
-    <th className="px-4 py-3 text-left text-sm font-semibold text-zinc-900 dark:text-zinc-100 bg-zinc-50 dark:bg-zinc-900">
+    <th className="px-4 py-3 text-left text-sm font-semibold text-ink bg-panel">
       {children}
     </th>
   ),
   td: ({ children }) => (
-    <td className="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300 border-t border-zinc-200 dark:border-zinc-800">
+    <td className="px-4 py-3 text-sm text-ink border-t border-rule">
       {children}
     </td>
   ),

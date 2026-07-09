@@ -8,10 +8,10 @@ export default function Home() {
   return (
     <div>
       <section className="mb-16">
-        <h1 className="font-serif text-3xl font-medium tracking-tight mb-4">
-          Hey, I&apos;m Kevin
-        </h1>
-        <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">
+        <p className="text-dim mb-4">
+          kevin@site:~$ <span className="text-ink font-semibold">whoami</span>
+        </p>
+        <p className="text-ink leading-relaxed max-w-xl">
           I write about building software, system design, and whatever I&apos;m
           learning. These are notes for myself that I&apos;m putting out into the
           world.
@@ -19,28 +19,26 @@ export default function Home() {
       </section>
 
       <section>
-        <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-500 uppercase tracking-wider mb-6">
-          Writing
-        </h2>
+        <p className="text-xs text-faint tracking-widest uppercase mb-6">
+          recent -- {posts.length} {posts.length === 1 ? "entry" : "entries"}
+        </p>
         {posts.length === 0 ? (
-          <p className="text-zinc-500 dark:text-zinc-500 italic">
-            No posts yet. Check back soon.
-          </p>
+          <p className="text-faint italic">No posts yet. Check back soon.</p>
         ) : (
           <ul className="space-y-1">
             {posts.map((post) => (
               <li key={post.slug}>
                 <Link
                   href={`/posts/${post.slug}`}
-                  className="group flex items-baseline gap-4 py-3 -mx-3 px-3 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                  className="group flex items-baseline gap-4 py-3 -mx-3 px-3 rounded-sm hover:bg-blue transition-colors"
                 >
                   <time
                     dateTime={post.date}
-                    className="text-sm text-zinc-400 dark:text-zinc-600 tabular-nums shrink-0"
+                    className="text-sm text-faint group-hover:text-white/70 tabular-nums shrink-0 transition-colors"
                   >
                     {format(new Date(post.date), "MMM d, yyyy")}
                   </time>
-                  <span className="font-medium group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors">
+                  <span className="font-medium text-ink group-hover:text-white transition-colors">
                     {post.title}
                   </span>
                 </Link>

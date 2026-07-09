@@ -25,12 +25,12 @@ export function VersionHistory({ created, updated, changelog }: VersionHistoryPr
   if (!hasUpdates && !hasChangelog) return null;
 
   return (
-    <div className="mb-8 p-4 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
-      <div className="flex items-center gap-3 text-sm text-zinc-600 dark:text-zinc-400">
+    <div className="mb-8 p-4 rounded-sm bg-panel border border-rule">
+      <div className="flex items-center gap-3 text-sm text-dim">
         {created && <span>Created {formatDate(created)}</span>}
         {hasUpdates && (
           <>
-            <span className="text-zinc-400 dark:text-zinc-600">&middot;</span>
+            <span className="text-faint">&middot;</span>
             <span>Updated {formatDate(updated)}</span>
           </>
         )}
@@ -38,16 +38,16 @@ export function VersionHistory({ created, updated, changelog }: VersionHistoryPr
 
       {hasChangelog && (
         <details className="mt-3 text-sm">
-          <summary className="cursor-pointer text-zinc-500 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors">
+          <summary className="cursor-pointer text-faint hover:text-blue transition-colors">
             Version history
           </summary>
           <ul className="mt-3 space-y-2">
             {changelog.map((entry) => (
               <li key={entry.version} className="flex items-start gap-3">
-                <span className="font-mono text-xs text-zinc-500 dark:text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">
+                <span className="text-xs text-faint bg-paper border border-rule px-1.5 py-0.5 rounded-sm">
                   v{entry.version}
                 </span>
-                <span className="text-zinc-600 dark:text-zinc-400">
+                <span className="text-dim">
                   {entry.summary}
                 </span>
               </li>

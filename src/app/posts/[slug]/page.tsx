@@ -4,9 +4,13 @@ import { MDXRemote } from "next-mdx-remote/rsc";
 import rehypeHighlight from "rehype-highlight";
 import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
-import { getPostBySlug, getAllPostSlugs } from "@/lib/posts";
+import { getPostBySlug, getAllPostSlugs, getAdjacentPosts } from "@/lib/posts";
 import { mdxComponents } from "@/components/mdx-components";
 import { VersionHistory } from "@/components/version-history";
+import { TypedTitle } from "@/components/typed-title";
+import { CopyMarkdownButton } from "@/components/copy-markdown-button";
+import { ScrollProgress } from "@/components/scroll-progress";
+import { PostNav } from "@/components/post-nav";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -60,6 +64,8 @@ export default async function PostPage({ params }: Props) {
     notFound();
   }
 
+  const { prev, next } = getAdjacentPosts(slug);
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
@@ -86,22 +92,26 @@ export default async function PostPage({ params }: Props) {
 
   return (
     <>
+      <ScrollProgress />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <article>
       <header className="mb-10">
-        <Link
-          href="/"
-          className="text-sm text-zinc-500 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors mb-8 inline-block"
-        >
-          &larr; Back to writing
-        </Link>
-        <h1 className="font-serif text-3xl font-medium tracking-tight mb-3">
-          {post.title}
+        <div className="flex items-center justify-between mb-8">
+          <Link
+            href="/"
+            className="text-sm text-faint hover:text-blue transition-colors"
+          >
+            &lt; cd ..
+          </Link>
+          <CopyMarkdownButton content={post.content} />
+        </div>
+        <h1 className="text-3xl font-semibold tracking-tight mb-3">
+          <TypedTitle text={post.title} />
         </h1>
-        <div className="flex items-center gap-3 text-sm text-zinc-500 dark:text-zinc-500">
+        <div className="flex items-center gap-3 text-sm text-faint">
           <time dateTime={post.date}>
             {format(new Date(post.date), "MMMM d, yyyy")}
           </time>
@@ -128,6 +138,12 @@ export default async function PostPage({ params }: Props) {
           }}
         />
       </div>
+
+      <p className="mt-10 text-sm text-faint">
+        &lt; EOF <span className="caret ml-1" aria-hidden="true" />
+      </p>
+
+      <PostNav prev={prev} next={next} />
     </article>
     </>
   );
