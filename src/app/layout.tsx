@@ -72,7 +72,6 @@ export default function RootLayout({
               </Link>
               <div className="flex items-center gap-4">
                 <NavLinks />
-                <ThemeToggle />
               </div>
             </nav>
           </header>
@@ -80,8 +79,9 @@ export default function RootLayout({
             <div className="max-w-3xl mx-auto px-6 py-12">{children}</div>
           </main>
           <footer className="border-t border-rule">
-            <div className="max-w-3xl mx-auto px-6 py-8 text-sm text-faint">
+            <div className="max-w-3xl mx-auto px-6 py-8 text-sm text-faint flex items-center justify-between">
               <p>kevin manase</p>
+              <ThemeToggle />
             </div>
           </footer>
         </div>
