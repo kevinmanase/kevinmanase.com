@@ -19,12 +19,15 @@ export default function Icon() {
       >
         <div
           style={{
-            width: 8,
-            height: 18,
-            background: "#ffffff",
-            borderRadius: 1,
+            display: "flex",
+            fontSize: 15,
+            fontWeight: 700,
+            letterSpacing: "-0.5px",
+            color: "#ffffff",
           }}
-        />
+        >
+          km
+        </div>
       </div>
     ),
     { ...size }
