@@ -1,0 +1,195 @@
+---
+title: "loops, graphs, and state machines"
+description: "an eli5 guide to agent loops, workflow graphs, and why the difference is simpler than the industry makes it sound."
+date: "2026-07-23"
+tags: ["ai", "agents", "workflows", "state-machines", "hermes", "codex", "claude-code"]
+published: true
+---
+
+## eli5
+
+imagine you ask a kid to clean a messy room.
+
+one option is a checklist:
+
+```text
+pick up the clothes
+→ put away the books
+→ throw out the trash
+→ make the bed
+```
+
+that is a graph. the steps and their order are already known.
+
+the other option is:
+
+```text
+look at the room
+→ choose the biggest mess
+→ clean it
+→ look again
+→ repeat until the room is clean
+```
+
+that is a loop. the next step depends on what the room looks like now.
+
+underneath, both are state machines.
+
+```text
+current state + new information
+→ choose what happens next
+→ do something
+→ new state
+```
+
+the important question is not "loop or graph?"
+
+it is:
+
+**who chooses what happens next?**
+
+## the simple version
+
+in a workflow graph, code chooses the next step.
+
+in an agent loop, the model chooses the next step.
+
+in most useful systems, both happen.
+
+code sets the boundaries. the model uses judgment inside them.
+
+```text
+workflow graph
+  → agent investigates
+  → code checks the result
+  → agent fixes what failed
+  → code decides whether to stop
+```
+
+this is a graph containing agent loops.
+
+that is most of "agent architecture" in one sentence.
+
+## where the hype starts
+
+a graph does not make a system smarter.
+
+it makes some decisions explicit.
+
+that can be useful:
+
+- run independent work in parallel
+- retry a failed step
+- inspect what happened
+- resume from a known state
+- stop after a fixed budget
+- require proof before moving forward
+
+those are normal software benefits. useful, but not a new form of intelligence.
+
+the unusual part is putting a language model inside the transition.
+
+instead of writing every rule:
+
+```text
+if the test fails, inspect the error
+```
+
+we can say:
+
+```text
+look at everything that happened
+and choose what is most likely to make progress
+```
+
+that gives us flexibility.
+
+it also gives us uncertainty.
+
+graphs often come back as guardrails around that uncertainty.
+
+## hermes, codex, and claude code
+
+[Hermes](https://hermes-agent.nousresearch.com/docs/developer-guide/agent-loop/), [Codex](https://learn.chatgpt.com/docs/agent-configuration/subagents), and [Claude Code](https://code.claude.com/docs/en/how-claude-code-works) are agent runtimes.
+
+they are not singular agents. they are not graphs. they are not loops.
+
+they can run all of those shapes.
+
+| thing | default shape | what it can become |
+|---|---|---|
+| Hermes session | one primary agent loop | child agent loops, code pipelines, durable Kanban work |
+| Codex task | one primary agent loop | a parent with parallel subagent loops |
+| Claude Code session | one primary agent loop | subagents, agent teams, or a scripted workflow |
+
+a normal session feels like one agent because one primary agent holds the context and decides what to do next.
+
+when it delegates, each child is another agent loop.
+
+when a script controls those children, we have a workflow graph.
+
+Claude Code makes this especially clear with [dynamic workflows](https://code.claude.com/docs/en/workflows). the script holds the plan. agents perform the work inside it.
+
+## our definition of a loop
+
+this is where overloaded language gets dangerous.
+
+for the product we are building, a loop is not the model's internal `while` loop.
+
+a **loop is the user-visible vessel**.
+
+it is the thing a person keeps.
+
+it grows through repeated outcomes.
+
+a skill powers it. a run is one attempt to move it forward.
+
+```text
+user-visible loop
+  ├── run 1
+  │     └── one agent loop
+  ├── run 2
+  │     └── a graph of agent loops
+  └── run 3
+        └── one deterministic workflow
+```
+
+the execution can change.
+
+the user's loop remains.
+
+that gives us a clean product rule:
+
+```text
+specific loop
+→ dedicated skill
+→ repeated outcome
+```
+
+Hermes, Codex, or Claude Code can power a run. their internal orchestration should not redefine what the user's loop is.
+
+## the practical guide
+
+my first version was:
+
+> loops are good when the task is unpredictable. graphs are good when the task is predictable.
+
+directionally right.
+
+this version is better:
+
+> use an agent loop when judgment holds the plan. use a graph when code can hold the plan.
+
+start with one agent.
+
+add a skill when the agent should follow a repeatable method.
+
+add subagents when several pieces of work are independent.
+
+add a graph when the order, branches, retries, and checks are known well enough to encode.
+
+move state outside the agent when the work must survive restarts, wait for people, or safely touch the real world.
+
+i wrote about the wider operating model in [agents guiding agents](/posts/agents-guiding-agents). this is the simpler idea underneath it.
+
+if we cannot name which decisions move from model judgment into code, we probably do not need a graph.
