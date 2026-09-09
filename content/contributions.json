@@ -1,0 +1,190 @@
+{
+  "generatedAt": "2026-09-09T21:34:51.117Z",
+  "repos": [
+    {
+      "repo": "NousResearch/hermes-agent",
+      "url": "https://github.com/NousResearch/hermes-agent",
+      "stars": 243828,
+      "language": "Python",
+      "blurb": "Agentic coding CLI from Nous Research. Lives in your terminal, keeps sessions alive across restarts.",
+      "latest": "2026-07-23T21:44:17Z",
+      "prs": [
+        {
+          "number": 70318,
+          "title": "feat(whatsapp): support Cloud API message templates",
+          "url": "https://github.com/NousResearch/hermes-agent/pull/70318",
+          "state": "open",
+          "date": "2026-07-23T21:44:17Z"
+        },
+        {
+          "number": 70267,
+          "title": "fix(acp): report current prompt tokens to clients",
+          "url": "https://github.com/NousResearch/hermes-agent/pull/70267",
+          "state": "open",
+          "date": "2026-07-23T19:37:11Z"
+        },
+        {
+          "number": 62203,
+          "title": "fix: bind prompt retries to durable sessions",
+          "url": "https://github.com/NousResearch/hermes-agent/pull/62203",
+          "state": "open",
+          "date": "2026-07-10T17:15:49Z"
+        },
+        {
+          "number": 62201,
+          "title": "fix(tui): preserve exact background notification owners",
+          "url": "https://github.com/NousResearch/hermes-agent/pull/62201",
+          "state": "open",
+          "date": "2026-07-10T17:14:04Z"
+        }
+      ]
+    },
+    {
+      "repo": "paperclipai/paperclip",
+      "url": "https://github.com/paperclipai/paperclip",
+      "stars": 80338,
+      "language": "TypeScript",
+      "blurb": "Open source agent management for teams. A CLI and a desktop app over the same core.",
+      "latest": "2026-07-21T17:58:28Z",
+      "prs": [
+        {
+          "number": 2379,
+          "title": "fix(cli): preserve extension file when import selections are cleared",
+          "url": "https://github.com/paperclipai/paperclip/pull/2379",
+          "state": "merged",
+          "date": "2026-07-21T17:58:28Z"
+        },
+        {
+          "number": 2538,
+          "title": "Refine CLI company commands behavior, tests",
+          "url": "https://github.com/paperclipai/paperclip/pull/2538",
+          "state": "open",
+          "date": "2026-04-02T16:43:10Z"
+        },
+        {
+          "number": 2438,
+          "title": "verify chat tool visibility 1775015247617",
+          "url": "https://github.com/paperclipai/paperclip/pull/2438",
+          "state": "closed",
+          "date": "2026-04-01T15:05:30Z"
+        }
+      ]
+    },
+    {
+      "repo": "block/buzz",
+      "url": "https://github.com/block/buzz",
+      "stars": 32468,
+      "language": "Rust",
+      "blurb": "Block's open agent client. Rust desktop app that speaks ACP.",
+      "latest": "2026-07-24T00:31:21Z",
+      "prs": [
+        {
+          "number": 2653,
+          "title": "feat(desktop): autocomplete ACP slash commands",
+          "url": "https://github.com/block/buzz/pull/2653",
+          "state": "open",
+          "date": "2026-07-24T00:31:21Z"
+        }
+      ]
+    },
+    {
+      "repo": "harbor-framework/terminal-bench-1",
+      "url": "https://github.com/harbor-framework/terminal-bench-1",
+      "stars": 2573,
+      "language": "Python",
+      "blurb": "Benchmark for LLMs doing real terminal work. Harness plus a task suite.",
+      "latest": "2026-07-06T08:13:20Z",
+      "prs": [
+        {
+          "number": 1456,
+          "title": "Document Python version for quickstart installs",
+          "url": "https://github.com/harbor-framework/terminal-bench-1/pull/1456",
+          "state": "open",
+          "date": "2026-07-06T08:13:20Z"
+        },
+        {
+          "number": 1455,
+          "title": "Fix reshard-c4-data oracle dependency gap",
+          "url": "https://github.com/harbor-framework/terminal-bench-1/pull/1455",
+          "state": "open",
+          "date": "2026-07-06T08:08:49Z"
+        }
+      ]
+    },
+    {
+      "repo": "10xapp/core-oss",
+      "url": "https://github.com/10xapp/core-oss",
+      "stars": 434,
+      "language": "Python",
+      "blurb": "10x's open core monorepo. Chat UI and design system.",
+      "latest": "2026-04-03T05:55:13Z",
+      "prs": [
+        {
+          "number": 38,
+          "title": "fix: replace hardcoded hex colors with design tokens in ChatMessage and Dropdown",
+          "url": "https://github.com/10xapp/core-oss/pull/38",
+          "state": "closed",
+          "date": "2026-04-03T05:55:13Z"
+        }
+      ]
+    },
+    {
+      "repo": "xgi-org/xgi",
+      "url": "https://github.com/xgi-org/xgi",
+      "stars": 254,
+      "language": "Jupyter Notebook",
+      "blurb": "Higher-order networks in Python. Hypergraphs and simplicial complexes.",
+      "latest": "2026-07-06T09:23:14Z",
+      "prs": [
+        {
+          "number": 742,
+          "title": "Document node label font size in draw",
+          "url": "https://github.com/xgi-org/xgi/pull/742",
+          "state": "closed",
+          "date": "2026-07-06T09:23:14Z"
+        }
+      ]
+    },
+    {
+      "repo": "pymovements/pymovements",
+      "url": "https://github.com/pymovements/pymovements",
+      "stars": 147,
+      "language": "Python",
+      "blurb": "Eye movement data processing for research labs.",
+      "latest": "2026-08-12T15:35:01Z",
+      "prs": [
+        {
+          "number": 1644,
+          "title": "fix: validate single-column array shapes in from_numpy",
+          "url": "https://github.com/pymovements/pymovements/pull/1644",
+          "state": "merged",
+          "date": "2026-08-12T15:35:01Z"
+        },
+        {
+          "number": 1601,
+          "title": "feat: allow passing column indices to `gaze.from_numpy`",
+          "url": "https://github.com/pymovements/pymovements/pull/1601",
+          "state": "merged",
+          "date": "2026-07-23T16:35:29Z"
+        }
+      ]
+    },
+    {
+      "repo": "pangeo-data/pangeo-docker-images",
+      "url": "https://github.com/pangeo-data/pangeo-docker-images",
+      "stars": 139,
+      "language": "Dockerfile",
+      "blurb": "Base Jupyter images for the Pangeo scientific computing stack.",
+      "latest": "2026-07-06T09:24:12Z",
+      "prs": [
+        {
+          "number": 666,
+          "title": "Document extending notebook images with packages",
+          "url": "https://github.com/pangeo-data/pangeo-docker-images/pull/666",
+          "state": "open",
+          "date": "2026-07-06T09:24:12Z"
+        }
+      ]
+    }
+  ]
+}

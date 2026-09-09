@@ -68,9 +68,10 @@ Key tools: Claude Code (Opus), OpenCode (Gemini via OpenRouter), Codex CLI
 
 ## Commands
 ```bash
-pnpm dev      # local dev
-pnpm build    # build
-pnpm lint     # lint
+pnpm dev           # local dev
+pnpm build         # build
+pnpm lint          # lint
+pnpm contributions # refresh content/contributions.json from GitHub
 ```
 
 ## File Conventions

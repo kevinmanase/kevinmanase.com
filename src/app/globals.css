@@ -10,6 +10,8 @@
   --faint: #a3a3c8;
   --rule: #e2e2f0;
   --blue: #1b1bec;
+  --merged: #7c3aed;
+  --open: #1a7f37;
 }
 
 [data-theme="dark"] {
@@ -20,6 +22,8 @@
   --faint: #5c5c86;
   --rule: #242540;
   --blue: #4f8cff;
+  --merged: #a78bfa;
+  --open: #3fb950;
 }
 
 @theme inline {
@@ -32,6 +36,8 @@
   --color-faint: var(--faint);
   --color-rule: var(--rule);
   --color-blue: var(--blue);
+  --color-merged: var(--merged);
+  --color-open: var(--open);
 }
 
 @keyframes blink {

@@ -1,12 +1,17 @@
 import Link from "next/link";
 import { format } from "date-fns";
 import { getAllPosts } from "@/lib/posts";
+import { getContributions } from "@/lib/contributions";
+import { Contributions } from "@/components/contributions";
 
 export default function Home() {
   const posts = getAllPosts();
+  const contributions = getContributions();
 
   return (
     <div>
+      <Contributions items={contributions} />
+
       <section className="mb-16">
         <p className="text-dim mb-4">
           kevin@site:~$ <span className="text-ink font-semibold">whoami</span>
