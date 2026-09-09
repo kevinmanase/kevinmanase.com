@@ -10,8 +10,6 @@ export default function Home() {
 
   return (
     <div>
-      <Contributions items={contributions} />
-
       <section className="mb-16">
         <p className="text-dim mb-4">
           kevin@site:~$ <span className="text-ink font-semibold">whoami</span>
@@ -22,6 +20,8 @@ export default function Home() {
           world.
         </p>
       </section>
+
+      <Contributions items={contributions} />
 
       <section>
         <p className="text-xs text-faint tracking-widest uppercase mb-6">
