@@ -1,14 +1,14 @@
 {
-  "generatedAt": "2026-09-10T17:54:46.491Z",
+  "generatedAt": "2026-09-10T21:17:03.424Z",
   "repos": [
     {
       "repo": "NousResearch/hermes-agent",
       "owner": "NousResearch",
       "name": "hermes-agent",
       "url": "https://github.com/NousResearch/hermes-agent",
-      "stars": 244153,
+      "stars": 244186,
       "language": "Python",
-      "blurb": "Agentic coding CLI from Nous Research. Lives in your terminal, keeps sessions alive across restarts.",
+      "blurb": "The agent that grows with you",
       "avatar": "/contributions/NousResearch.png",
       "latest": "2026-07-23T21:44:17Z",
       "prs": [
@@ -47,9 +47,9 @@
       "owner": "paperclipai",
       "name": "paperclip",
       "url": "https://github.com/paperclipai/paperclip",
-      "stars": 80404,
+      "stars": 80413,
       "language": "TypeScript",
-      "blurb": "Open source agent management for teams. A CLI and a desktop app over the same core.",
+      "blurb": "The open-source app everyone uses to manage agents at work",
       "avatar": "/contributions/paperclipai.png",
       "latest": "2026-07-21T17:58:28Z",
       "prs": [
@@ -81,9 +81,9 @@
       "owner": "block",
       "name": "buzz",
       "url": "https://github.com/block/buzz",
-      "stars": 32526,
+      "stars": 32534,
       "language": "Rust",
-      "blurb": "Block's open agent client. Rust desktop app that speaks ACP.",
+      "blurb": "A hive mind communication platform",
       "avatar": "/contributions/block.png",
       "latest": "2026-07-24T00:31:21Z",
       "prs": [
@@ -103,7 +103,7 @@
       "url": "https://github.com/harbor-framework/terminal-bench-1",
       "stars": 2575,
       "language": "Python",
-      "blurb": "Benchmark for LLMs doing real terminal work. Harness plus a task suite.",
+      "blurb": "A benchmark for LLMs on complicated tasks in the terminal",
       "avatar": "/contributions/harbor-framework.png",
       "latest": "2026-07-06T08:13:20Z",
       "prs": [
@@ -130,7 +130,7 @@
       "url": "https://github.com/10xapp/core-oss",
       "stars": 434,
       "language": "Python",
-      "blurb": "10x's open core monorepo. Chat UI and design system.",
+      "blurb": "Open-source, all-in-one productivity platform. Email, calendar, chat, files, projects, in one app.",
       "avatar": "/contributions/10xapp.png",
       "latest": "2026-04-03T05:55:13Z",
       "prs": [
@@ -150,7 +150,7 @@
       "url": "https://github.com/xgi-org/xgi",
       "stars": 254,
       "language": "Jupyter Notebook",
-      "blurb": "Higher-order networks in Python. Hypergraphs and simplicial complexes.",
+      "blurb": "CompleX Group Interactions (XGI) is a Python package for higher-order networks.",
       "avatar": "/contributions/xgi-org.png",
       "latest": "2026-07-06T09:23:14Z",
       "prs": [
@@ -170,7 +170,7 @@
       "url": "https://github.com/pymovements/pymovements",
       "stars": 147,
       "language": "Python",
-      "blurb": "Eye movement data processing for research labs.",
+      "blurb": "A python package for processing eye movement data",
       "avatar": "/contributions/pymovements.png",
       "latest": "2026-08-12T15:35:01Z",
       "prs": [
@@ -197,7 +197,7 @@
       "url": "https://github.com/pangeo-data/pangeo-docker-images",
       "stars": 139,
       "language": "Dockerfile",
-      "blurb": "Base Jupyter images for the Pangeo scientific computing stack.",
+      "blurb": "Docker Images For Pangeo Jupyter Environment",
       "avatar": "/contributions/pangeo-data.png",
       "latest": "2026-07-06T09:24:12Z",
       "prs": [

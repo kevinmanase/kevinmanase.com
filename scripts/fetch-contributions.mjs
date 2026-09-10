@@ -26,6 +26,17 @@ const REPOS = [
   "pangeo-data/pangeo-docker-images",
 ];
 
+/**
+ * Blurbs come from each repo's own GitHub description - that's the project's
+ * own marketing copy, not our reading of their code. Override only where that
+ * description is useless; put the project's own words here, not a summary.
+ */
+const BLURB_OVERRIDES = {
+  // GitHub description is literally "core-oss monorepo". This is their README's opening line.
+  "10xapp/core-oss":
+    "Open-source, all-in-one productivity platform. Email, calendar, chat, files, projects, in one app.",
+};
+
 const OUT = path.join(process.cwd(), "content/contributions.json");
 const AVATAR_DIR = path.join(process.cwd(), "public/contributions");
 
@@ -44,20 +55,6 @@ function ghPaginate(endpoint, jq) {
     .split("\n")
     .filter(Boolean)
     .map((line) => JSON.parse(line));
-}
-
-function loadExistingBlurbs() {
-  if (!fs.existsSync(OUT)) return {};
-  try {
-    const prev = JSON.parse(fs.readFileSync(OUT, "utf8"));
-    return Object.fromEntries(
-      (prev.repos ?? [])
-        .filter((r) => r.blurb)
-        .map((r) => [r.repo, r.blurb])
-    );
-  } catch {
-    return {};
-  }
 }
 
 function prState(item) {
@@ -80,8 +77,6 @@ async function fetchAvatar(owner) {
 }
 
 async function main() {
-  const blurbs = loadExistingBlurbs();
-
   const query = `type:pr+author:${AUTHOR}+is:public`;
   const allPrs = ghPaginate(
     `search/issues?q=${query}&per_page=100`,
@@ -119,7 +114,7 @@ async function main() {
       url: meta.url,
       stars: meta.stars,
       language: meta.language ?? "Unknown",
-      blurb: blurbs[meta.repo] ?? meta.description ?? "",
+      blurb: BLURB_OVERRIDES[meta.repo] ?? meta.description ?? "",
       avatar: await fetchAvatar(meta.repo.split("/")[0]),
       latest: prs[0]?.date ?? null,
       prs,

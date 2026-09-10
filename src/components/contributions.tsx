@@ -103,7 +103,7 @@ function Card({ repo }: { repo: Contribution }) {
             <Identity repo={repo} size={40} />
           </div>
           <div className="flex flex-col gap-3 px-[18px] pt-[15px] pb-4 flex-1 min-h-0">
-            <p className="text-sm text-ink leading-relaxed flex-1 min-h-0 overflow-hidden line-clamp-5">
+            <p className="text-sm text-ink leading-relaxed flex-1 min-h-0 overflow-hidden line-clamp-3">
               {repo.blurb}
             </p>
             <div className="flex items-center gap-2.5 text-xs text-faint shrink-0">
@@ -123,7 +123,7 @@ function Card({ repo }: { repo: Contribution }) {
         </div>
 
         {/* back */}
-        <div className="contrib-face contrib-back p-[15px] gap-2">
+        <div className="contrib-face contrib-back p-3 gap-2">
           <div className="flex items-center gap-2 shrink-0 text-xs text-dim">
             {repo.avatar && (
               <Image
@@ -156,10 +156,10 @@ function Card({ repo }: { repo: Contribution }) {
                       {state.glyph}
                       <span className="sr-only">{state.label}</span>
                     </span>
-                    <span className="text-faint tabular-nums shrink-0">
-                      #{pr.number}
-                    </span>
-                    <span className="text-dim group-hover:text-blue transition-colors leading-snug">
+                    <span className="text-dim group-hover:text-blue transition-colors leading-snug line-clamp-3">
+                      <span className="text-faint tabular-nums">
+                        #{pr.number}
+                      </span>{" "}
                       {pr.title}
                     </span>
                   </a>
