@@ -15,10 +15,13 @@ export interface PullRequest {
 
 export interface Contribution {
   repo: string;
+  owner: string;
+  name: string;
   url: string;
   stars: number;
   language: string;
   blurb: string;
+  avatar: string | null;
   latest: string | null;
   prs: PullRequest[];
 }

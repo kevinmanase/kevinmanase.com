@@ -27,6 +27,7 @@ const REPOS = [
 ];
 
 const OUT = path.join(process.cwd(), "content/contributions.json");
+const AVATAR_DIR = path.join(process.cwd(), "public/contributions");
 
 function gh(endpoint, jq) {
   const args = ["api", endpoint];
@@ -64,7 +65,21 @@ function prState(item) {
   return item.state === "open" ? "open" : "closed";
 }
 
-function main() {
+/** Saves the org's avatar locally so the site never hotlinks GitHub. */
+async function fetchAvatar(owner) {
+  const file = `${owner}.png`;
+  const res = await fetch(`https://github.com/${owner}.png?size=160`);
+  if (!res.ok) {
+    console.warn(`  warning: avatar fetch failed for ${owner} (${res.status})`);
+    return null;
+  }
+  const buf = Buffer.from(await res.arrayBuffer());
+  fs.mkdirSync(AVATAR_DIR, { recursive: true });
+  fs.writeFileSync(path.join(AVATAR_DIR, file), buf);
+  return `/contributions/${file}`;
+}
+
+async function main() {
   const blurbs = loadExistingBlurbs();
 
   const query = `type:pr+author:${AUTHOR}+is:public`;
@@ -73,7 +88,8 @@ function main() {
     ".items[] | {repo:(.repository_url|sub(\"https://api.github.com/repos/\";\"\")), number, title, url:.html_url, state, merged_at:.pull_request.merged_at, created_at}"
   );
 
-  const repos = REPOS.map((name) => {
+  const repos = [];
+  for (const name of REPOS) {
     const meta = JSON.parse(
       gh(
         `repos/${name}`,
@@ -96,16 +112,21 @@ function main() {
       console.warn(`  warning: no public PRs found for ${name}`);
     }
 
-    return {
+    repos.push({
       repo: meta.repo,
+      owner: meta.repo.split("/")[0],
+      name: meta.repo.split("/")[1],
       url: meta.url,
       stars: meta.stars,
       language: meta.language ?? "Unknown",
       blurb: blurbs[meta.repo] ?? meta.description ?? "",
+      avatar: await fetchAvatar(meta.repo.split("/")[0]),
       latest: prs[0]?.date ?? null,
       prs,
-    };
-  }).sort((a, b) => b.stars - a.stars);
+    });
+  }
+
+  repos.sort((a, b) => b.stars - a.stars);
 
   const payload = {
     generatedAt: new Date().toISOString(),
@@ -119,4 +140,4 @@ function main() {
   console.log(`Wrote ${repos.length} repos, ${prCount} pull requests to ${path.relative(process.cwd(), OUT)}`);
 }
 
-main();
+await main();

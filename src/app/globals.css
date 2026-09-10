@@ -12,6 +12,8 @@
   --blue: #1b1bec;
   --merged: #7c3aed;
   --open: #1a7f37;
+  --card-shadow: 0 1px 0 rgb(20 20 58 / 0.04), 0 14px 34px -16px rgb(20 20 58 / 0.26);
+  --card-shadow-hi: 0 1px 0 rgb(20 20 58 / 0.06), 0 22px 48px -18px rgb(20 20 58 / 0.38);
 }
 
 [data-theme="dark"] {
@@ -24,6 +26,8 @@
   --blue: #4f8cff;
   --merged: #a78bfa;
   --open: #3fb950;
+  --card-shadow: 0 1px 0 rgb(0 0 0 / 0.4), 0 14px 34px -16px rgb(0 0 0 / 0.75);
+  --card-shadow-hi: 0 1px 0 rgb(0 0 0 / 0.5), 0 22px 48px -18px rgb(0 0 0 / 0.95);
 }
 
 @theme inline {
@@ -178,4 +182,83 @@ body {
 :focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 2px;
+}
+
+/* Contribution flip cards.
+   .contrib-inner must be display:block with a definite height so the
+   absolutely positioned faces get a real containing block. */
+.contrib-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 880px) {
+  .contrib-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 600px) {
+  .contrib-grid { grid-template-columns: 1fr; }
+}
+
+.contrib-card {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 278px;
+  perspective: 1400px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.contrib-inner {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 550ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.contrib-card[aria-pressed="true"] .contrib-inner {
+  transform: rotateY(180deg);
+}
+
+.contrib-face {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.contrib-card:hover .contrib-face {
+  border-color: color-mix(in srgb, var(--blue) 35%, var(--rule));
+  box-shadow: var(--card-shadow-hi);
+}
+
+.contrib-back {
+  transform: rotateY(180deg);
+}
+
+.contrib-banner {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--blue) 7%, var(--panel)),
+    var(--panel)
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contrib-inner { transition: none; }
 }
