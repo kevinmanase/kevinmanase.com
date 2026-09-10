@@ -63,7 +63,7 @@ export default function RootLayout({
       <body className="bg-paper text-ink antialiased">
         <div className="min-h-screen flex flex-col">
           <header className="border-b border-rule">
-            <nav className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between text-sm">
+            <nav className="max-w-[var(--content-width)] mx-auto px-6 py-4 flex items-center justify-between text-sm">
               <Link
                 href="/"
                 className="text-ink hover:text-blue transition-colors"
@@ -76,10 +76,10 @@ export default function RootLayout({
             </nav>
           </header>
           <main className="flex-1">
-            <div className="max-w-3xl mx-auto px-6 py-12">{children}</div>
+            <div className="max-w-[var(--content-width)] mx-auto px-6 py-12">{children}</div>
           </main>
           <footer className="border-t border-rule">
-            <div className="max-w-3xl mx-auto px-6 py-8 text-sm text-faint flex items-center justify-between">
+            <div className="max-w-[var(--content-width)] mx-auto px-6 py-8 text-sm text-faint flex items-center justify-between">
               <p>kevin manase</p>
               <ThemeToggle />
             </div>

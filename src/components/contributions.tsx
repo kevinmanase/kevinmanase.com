@@ -189,7 +189,11 @@ export function Contributions({ items }: { items: Contribution[] }) {
   if (items.length === 0) return null;
 
   return (
-    <section className="mb-16 relative left-1/2 -translate-x-1/2 w-[min(1080px,100vw-3rem)]">
+    <section className="mb-16">
+      <p className="text-xs text-faint tracking-widest uppercase mb-6">
+        contributions
+      </p>
+
       <div className="flex gap-4 flex-wrap text-xs text-faint mb-4">
         {(Object.keys(STATE_STYLES) as PullRequestState[]).map((key) => (
           <span key={key} className="inline-flex items-center gap-1.5">

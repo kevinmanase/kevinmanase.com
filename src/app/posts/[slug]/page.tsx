@@ -97,7 +97,7 @@ export default async function PostPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <article>
+      <article className="max-w-[var(--reading-width)]">
       <header className="mb-10">
         <div className="flex items-center justify-between mb-8">
           <Link
