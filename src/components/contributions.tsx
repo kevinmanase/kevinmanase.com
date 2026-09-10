@@ -103,7 +103,7 @@ function Card({ repo }: { repo: Contribution }) {
             <Identity repo={repo} size={40} />
           </div>
           <div className="flex flex-col gap-3 px-[18px] pt-[15px] pb-4 flex-1 min-h-0">
-            <p className="text-sm text-ink leading-relaxed flex-1 min-h-0 overflow-hidden line-clamp-4">
+            <p className="text-sm text-ink leading-relaxed flex-1 min-h-0 overflow-hidden line-clamp-5">
               {repo.blurb}
             </p>
             <div className="flex items-center gap-2.5 text-xs text-faint shrink-0">

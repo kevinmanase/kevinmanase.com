@@ -15,7 +15,7 @@
 
   /* One shared content width. Every top-level container respects this;
      nothing defines its own. Change it here and the whole site follows. */
-  --content-width: 1080px;
+  --content-width: 912px;
   --card-shadow: 0 1px 0 rgb(20 20 58 / 0.04), 0 14px 34px -16px rgb(20 20 58 / 0.26);
   --card-shadow-hi: 0 1px 0 rgb(20 20 58 / 0.06), 0 22px 48px -18px rgb(20 20 58 / 0.38);
 }
@@ -209,7 +209,7 @@ body {
   display: block;
   position: relative;
   width: 100%;
-  height: 278px;
+  height: 344px;
   perspective: 1400px;
   cursor: pointer;
   text-align: left;
