@@ -13,10 +13,9 @@
   --merged: #7c3aed;
   --open: #1a7f37;
 
-  /* One shared page frame. Every top-level container respects this.
-     --reading-width keeps long-form prose at a legible measure inside it. */
+  /* One shared content width. Every top-level container respects this;
+     nothing defines its own. Change it here and the whole site follows. */
   --content-width: 1080px;
-  --reading-width: 768px;
   --card-shadow: 0 1px 0 rgb(20 20 58 / 0.04), 0 14px 34px -16px rgb(20 20 58 / 0.26);
   --card-shadow-hi: 0 1px 0 rgb(20 20 58 / 0.06), 0 22px 48px -18px rgb(20 20 58 / 0.38);
 }
