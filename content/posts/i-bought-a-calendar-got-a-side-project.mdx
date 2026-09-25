@@ -102,19 +102,36 @@ now i want to stop being involved in the second one.
 
 **the automatic version is the next build.** what exists today is the client and a successful one-time import.
 
-i'd run a small helper on my mac, with permission to read reminders. start with one selected list, including completed items so those changes make it across too. check every few minutes while the mac is awake, and catch up when it resumes.
+could this just be an ifttt thing? or an apple shortcut?
+
+maybe. i looked at both.
+
+[ifttt has triggers for new and completed apple reminders](https://ifttt.com/ios_reminders). those could call a small bridge to our client. but [ifttt says its iphone background syncing can be unreliable](https://help.ifttt.com/hc/en-us/articles/115010193327-About-iOS-background-syncing). if i have to remember to open another app so my reminders remember to sync, we've taken a wrong turn.
+
+shortcuts can [read reminders](https://support.apple.com/guide/shortcuts/apd3c845e881/ios) and [make API requests](https://support.apple.com/guide/shortcuts/apd58d46713f/ios). a “sync skylight” button seems doable. scheduled runs too. but i couldn't find a generic “a reminder was added” trigger in [apple's automation docs](https://support.apple.com/guide/shortcuts/add-automations-apdfbdbd7123/ios). running when i close reminders misses the point: i use siri. i might never open the app.
+
+a custom siri shortcut could write to both places. then i'd have to remember a different phrase, and it would only cover reminders added that way.
+
+i already like how adding a reminder works.
+
+so the rough version i'd actually build is a small helper on my mac. [icloud already brings my reminders there](https://support.apple.com/guide/icloud/mmc591432bd9/icloud). give the helper permission to read and update them. start with one selected list, nonrecurring reminders only, and include completed items when reading so those changes make it across too. run it manually first, then check periodically while the mac is awake and catch up when it resumes.
 
 ```mermaid
 flowchart TD
-    R["Apple Reminders"] --> H["Local reader"]
+    P["Normal Siri capture on iPhone"] --> R["Apple Reminders on Mac via iCloud"]
+    R <--> H["Permissioned local helper"]
     T["Timer and catch-up"] --> S["Sync worker"]
-    H --> S
+    H <--> S
     S <--> DB[("SQLite: identities and sync state")]
-    S --> C["Existing Skylight client"]
-    C --> A["Skylight API"]
+    S <--> C["Existing Skylight client"]
+    C <--> A["Skylight lists via API"]
 ```
 
-for the first version, apple reminders would own the text and completion state. skylight would mirror that list. edits made on skylight would be overwritten on the next reconciliation. two-way editing can come later, with an explicit answer for what happens when both sides change.
+apple reminders would own the wording. checking something off would travel both ways. if i check it off on the wall and the next sync unchecks it, what are we even doing here.
+
+reopening a completed task would pause that pair for review in the first version. i don't want a guess about which edit was newer quietly undoing something.
+
+due dates and alerts would stay in apple reminders. our current skylight list-item method doesn't have a due-date field. the phone can still remind me about the laundry in 30 minutes; getting the task onto the wall doesn't move that alert.
 
 the worker needs to remember what it has already copied. a task's title is a terrible identity. i can rename “buy milk.” i can also need milk twice.
 
@@ -124,17 +141,19 @@ so i'd keep a mapping like this. this is proposed storage, not part of the first
 CREATE TABLE reminder_links (
     reminder_id TEXT PRIMARY KEY,
     skylight_id TEXT UNIQUE,
-    confirmed_hash TEXT
+    confirmed_hash TEXT,
+    apple_completed INTEGER NOT NULL,
+    skylight_completed INTEGER NOT NULL
 );
 ```
 
-the reminder ID identifies the source item. the skylight ID identifies its copy. the hash records the fields last confirmed on the other side.
+the reminder ID identifies the source item. the skylight ID identifies its copy. the hash records the source fields last confirmed there. the two completion values record what we last confirmed on each side, so the next pass can spot a change. this is a sketch; pending operations need their own storage too.
 
 i'd keep the source account and list context too. [apple's local IDs can change during a full resync](https://developer.apple.com/documentation/eventkit/ekcalendaritem/calendaritemidentifier). an identity i can't resolve gets flagged before anything new is created.
 
 the existing 33 copies need pairing with their source reminders first. we have their skylight IDs. i don't want the first automatic run celebrating with 33 duplicates.
 
-new item: create it and save the mapping. changed item: update its existing copy. unchanged: leave it alone. i'd verify the API's rename behavior before adding that to the worker; the existing client already supports changing completion status.
+new item: create it and save the mapping. checked off: reconcile the matching item. unchanged: leave it alone. title changes would get flagged until i've verified the API's rename behavior; the existing client already supports changing completion status.
 
 then there's the annoying bit.
 
@@ -148,7 +167,8 @@ the rest is a few rules:
 
 - one run at a time. no overlapping imports.
 - a failed or incomplete reminders read changes nothing on skylight.
-- missing source items don't trigger automatic deletion in v1.
+- skylight reads need to include completed items and every page too. incomplete reads stop the run.
+- missing items on either side get flagged, not automatically deleted or recreated.
 - compare skylight with reminders periodically, even when reminders haven't changed. that catches edits made on the calendar too.
 - back off on transient failures. surface expired access or a changed API instead of retrying forever.
 
@@ -159,6 +179,8 @@ this is still an unofficial API. keeping its details inside one client gives me 
 the mac has to be awake for this version to run. that's fine for a first pass. if the delay bothers me, i'd move the worker to a mac that stays on.
 
 the useful status screen would be very boring: last successful sync, how many changes are waiting, anything that needs me.
+
+i put the [options, tradeoffs, and rough build plan in the repo](https://github.com/kevinmanase/skylight-calendar-client/blob/main/ARCHITECTURE.md). none of that sync worker exists yet. first proof: add one reminder, run twice without making a duplicate, check it off on the wall, and see that check reach my phone.
 
 eventually, i want to tell siri to remind me about something and walk past it on the calendar.
 
