@@ -1,0 +1,165 @@
+---
+title: "i bought a calendar. got a side project."
+description: "following skylight's network requests, building a client, and getting my reminders onto the screen. next up: making it automatic."
+date: "2026-09-25"
+tags: ["engineering", "architecture", "skylight", "small-hacks"]
+published: true
+---
+
+i like my skylight.
+
+if you haven't seen one, [skylight is a touchscreen calendar for your home](https://shop.myskylight.com/). it brings everyone's calendars onto one screen, with colors for different people, plus chores, to-dos, and shared lists.
+
+all the little things involved in running a household, somewhere everyone can see them. you walk past it. there's your day.
+
+my favorite part is the lists.
+
+i like lists. i like checking things off. every check is a little dopamine hit.
+
+did the thing. checked the box. wonderful. give me another one.
+
+so having my lists on that screen, ready to check off? yes. that's what i wanted.
+
+my reminders live in apple reminders. adding one is easy.
+
+i hold the power button on my phone, siri comes up, and i go “remind me to check the laundry in 30 minutes.”
+
+done. that's the whole interaction.
+
+i'd like those reminders on the skylight too, without giving myself a recurring task called “update the other task list.”
+
+very productive. excellent system.
+
+so i started poking around.
+
+when you add a chore or a calendar event, the app sends a request somewhere. i wanted to see what it was sending, then make those requests myself.
+
+[dax had posted about this](https://x.com/thdxr/status/2078727284865827140), crediting james long: record the browser's network requests, then build a client from them. he'd done it for uber eats.
+
+i had a calendar to deal with.
+
+<Tweet id="2078727284865827140" />
+
+i also pulled in matt van horn's [printing press](https://github.com/mvanhorn/cli-printing-press) as a reference for the approach.
+
+![cat typing](https://media.giphy.com/media/mcsPU3SkKrYDdW3aAU/giphy.gif)
+
+first, find the device on my network. see what we could reach.
+
+the device's traffic was encrypted. the web app gave us a much easier place to look.
+
+its javascript bundle contained the API paths and the shapes of the requests. we used that to work out how lists, calendar events, and chores were represented, then tested requests against my account.
+
+so the path became:
+
+```mermaid
+flowchart TD
+    W["Skylight web app"] --> A["Skylight cloud API"]
+    R["Reminders copied for the first import"] --> I["Import script"]
+    I --> P["Python client"]
+    P --> A
+    A --> D["Skylight calendar"]
+```
+
+the calendar already knew how to display its cloud data. we needed a way to put my data there.
+
+the client ended up being small. python, standard library, methods for the operations i needed. here's the list-item method from the working code:
+
+```python
+def add_item(self, list_id, label, category_id=None, section=None):
+    body = {"label": label, "category_id": category_id, "section": section}
+    return self._req("POST", self.f(f"lists/{list_id}/list_items"), body)
+```
+
+`self.f()` scopes the path to my skylight device. `_req()` handles the request and authentication. the import script can call `add_item()` without knowing any of that.
+
+that separation is useful later. a scheduled job, a little web page, or another script can use the same client.
+
+authentication needed some attention too. this is the refresh branch in the client:
+
+```python
+status, payload = self._raw(method, path, body)
+if status == 401 and self.refresh:
+    if self._do_refresh():
+        status, payload = self._raw(method, path, body)
+```
+
+one refresh attempt, then try the request again. if it still fails, the current script exits with an error.
+
+before importing my reminders, we tested the round trips: create a list item, mark it complete, delete it. create calendar events, delete those too. check that token refresh works.
+
+then the import.
+
+33 reminders copied into skylight's to-do list. we saved the returned IDs and read the list back through the API to verify they were there. the originals stayed in apple reminders.
+
+good. the first trip worked.
+
+i put a [cleaned copy of the client on github](https://github.com/kevinmanase/skylight-calendar-client). credentials and personal reminder data are excluded. it's an unofficial educational project; the repo includes [its limits and disclaimers](https://github.com/kevinmanase/skylight-calendar-client/blob/main/DISCLAIMER.md).
+
+the public version uses its own User-Agent and has 22 offline tests. i haven't tested that version against skylight. the live results above came from the original experiment.
+
+now i want to stop being involved in the second one.
+
+**the automatic version is the next build.** what exists today is the client and a successful one-time import.
+
+i'd run a small helper on my mac, with permission to read reminders. start with one selected list, including completed items so those changes make it across too. check every few minutes while the mac is awake, and catch up when it resumes.
+
+```mermaid
+flowchart TD
+    R["Apple Reminders"] --> H["Local reader"]
+    T["Timer and catch-up"] --> S["Sync worker"]
+    H --> S
+    S <--> DB[("SQLite: identities and sync state")]
+    S --> C["Existing Skylight client"]
+    C --> A["Skylight API"]
+```
+
+for the first version, apple reminders would own the text and completion state. skylight would mirror that list. edits made on skylight would be overwritten on the next reconciliation. two-way editing can come later, with an explicit answer for what happens when both sides change.
+
+the worker needs to remember what it has already copied. a task's title is a terrible identity. i can rename “buy milk.” i can also need milk twice.
+
+so i'd keep a mapping like this. this is proposed storage, not part of the first importer:
+
+```sql
+CREATE TABLE reminder_links (
+    reminder_id TEXT PRIMARY KEY,
+    skylight_id TEXT UNIQUE,
+    confirmed_hash TEXT
+);
+```
+
+the reminder ID identifies the source item. the skylight ID identifies its copy. the hash records the fields last confirmed on the other side.
+
+i'd keep the source account and list context too. [apple's local IDs can change during a full resync](https://developer.apple.com/documentation/eventkit/ekcalendaritem/calendaritemidentifier). an identity i can't resolve gets flagged before anything new is created.
+
+the existing 33 copies need pairing with their source reminders first. we have their skylight IDs. i don't want the first automatic run celebrating with 33 duplicates.
+
+new item: create it and save the mapping. changed item: update its existing copy. unchanged: leave it alone. i'd verify the API's rename behavior before adding that to the worker; the existing client already supports changing completion status.
+
+then there's the annoying bit.
+
+what if skylight creates the item, but the request times out before i get the ID back? or the process crashes after getting the ID, before saving it locally?
+
+“retry” could give me two milks.
+
+i'd record each pending write before sending it. a create with an unknown result stays unresolved until i can identify what happened. if the API supports a caller-supplied unique key, i'd use it. i haven't verified that support. without it, ambiguous creates need reconciliation or a small nudge from me before another attempt.
+
+the rest is a few rules:
+
+- one run at a time. no overlapping imports.
+- a failed or incomplete reminders read changes nothing on skylight.
+- missing source items don't trigger automatic deletion in v1.
+- compare skylight with reminders periodically, even when reminders haven't changed. that catches edits made on the calendar too.
+- back off on transient failures. surface expired access or a changed API instead of retrying forever.
+
+i'd also change the client's exit-on-error behavior so the worker can distinguish a failed login from a temporary network problem.
+
+this is still an unofficial API. keeping its details inside one client gives me one place to fix things if skylight changes them.
+
+the mac has to be awake for this version to run. that's fine for a first pass. if the delay bothers me, i'd move the worker to a mac that stays on.
+
+the useful status screen would be very boring: last successful sync, how many changes are waiting, anything that needs me.
+
+eventually, i want to tell siri to remind me about something and walk past it on the calendar.
+
+that's the feature.
