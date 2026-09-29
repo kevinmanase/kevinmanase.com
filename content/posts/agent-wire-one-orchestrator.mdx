@@ -1,0 +1,181 @@
+---
+title: "agent wire + herdr customizations: one orchestrator, many agents"
+description: "two pieces of my agent setup: agent wire for shared reports and messages, and herdr-customizations for named tabs, hooks, and questions that stay visible."
+date: "2026-09-29T12:00:00-05:00"
+created: "2026-09-29"
+tags: ["ai", "agents", "workflow", "claude-code", "codex", "developer-tools"]
+published: true
+---
+
+i published two pieces of my agent setup.
+
+[agent wire](https://github.com/kevinmanase/agent-wire) lets claude code and codex talk to each other. a shared address book, inbox, replies, and work list. local broker. sqlite underneath. the agents stay in their own sessions.
+
+[herdr-customizations](https://github.com/kevinmanase/herdr-customizations) is my naming setup for [herdr](https://github.com/herdrdev/herdr). hooks, a skill, and a small helper that keep task names and pending questions visible in the terminal.
+
+they are separate repos. use either on its own. together, they give the agents a way to coordinate and give me a workspace i can scan.
+
+the reason i wanted both is simple: i mainly want to talk to one agent.
+
+the orchestrator.
+
+![look at me, i'm the captain now](/screenshots/agent-wire/captain-now.gif)
+
+*the vibe. [gif on giphy](https://giphy.com/gifs/reactiongifs-rVZEejvVWEbug).*
+
+it keeps track of the others. i give it direction, discuss tradeoffs, and answer the things that need me. workers handle their own pieces and report back.
+
+the plan is a swarm. but a swarm only works for me if someone is supervising it.
+
+## the problem: i became the message bus
+
+running several agents is easy. keeping them pointed at the same outcome takes work.
+
+one is implementing. another is reviewing. a third found something that changes the plan. someone is waiting on a decision, but that question is buried in a tab i haven't opened.
+
+then i'm copying messages between windows. asking who is still working. trying to remember whether that checkmark meant the turn ended or the change shipped.
+
+i wrote about the broader pattern in [agents guiding agents](/posts/agents-guiding-agents). separate the maker, the checker, and the agent keeping track of the whole thing.
+
+agent wire gives those conversations a shared place to happen. the herdr customization keeps the state i need visible in the tab names.
+
+## one main conversation
+
+my main conversation is with the orchestrator. the workers have smaller jobs.
+
+those worker sessions can be orchestrators too. a single session might coordinate dozens of its own subagents, split up investigations, and bring the results back together.
+
+so one tab can represent a whole team. i still mainly talk to the overall orchestrator, while each session manages the work underneath it.
+
+```text
+me
+  main orchestrator
+    implementation session
+      its own subagents
+    independent review session
+      its own subagents
+    investigation session
+      its own subagents
+```
+
+the orchestrator should know what each worker owns, what is waiting, and what evidence comes next. it can ask for an update without making me switch tabs and relay it.
+
+that doesn't make the orchestrator infallible. a worker saying "done" is still a report. the reviewer still needs to review. tests still need to run. a merge still needs to happen.
+
+one place to talk. several places to do focused work.
+
+## agent wire: the same list inside and outside an agent
+
+from a plain terminal:
+
+```sh
+agent-wire sessions --table
+```
+
+![agent wire's shared work list in a terminal, with claude and codex sessions and their latest task reports](/screenshots/agent-wire/shared-work-list.png)
+
+*the shared work list in my terminal, with the herdr workspace alongside it. [open the full screenshot](/screenshots/agent-wire/shared-work-list.png).*
+
+inside a coding agent, the MCP tool is `sessions_list`.
+
+both read the same shared work list. each enrolled session publishes its own task and status through `session_update`, or through the CLI's `report` command.
+
+the statuses are `working`, `waiting`, `blocked`, `idle`, and `done`. a report can also include a repository, branch, ticket, and more detail.
+
+freshness matters. with reporting hooks installed, a new prompt marks the previous report as needing an update. five minutes without a report or hook heartbeat makes an entry stale. heartbeats track contact, not the age of the task report. stale doesn't mean the process died. idle doesn't mean the task is finished.
+
+only enrolled sessions appear. the list covers the agents that have joined.
+
+## messages need receipts
+
+an agent can discover enrolled recipients with `agents_list`, send with `message_send`, and read its inbox with `messages_read`. replies link back to the original message. there is also an explicit acknowledgement.
+
+those distinctions matter:
+
+- queued means the broker has it
+- submitted means codex accepted the delivery request, or the claude socket write completed. it is not a receipt
+- acknowledged means the recipient explicitly acknowledged it
+- a reply is a reply. it doesn't prove the requested work is complete
+
+the broker stores messages in sqlite. delivery goes through native runtime interfaces: tool output for codex, a session inbox for claude code.
+
+agent wire doesn't launch workers or decide what they should do. the orchestration policy lives with the orchestrator.
+
+## herdr-customizations: make the work visible
+
+[herdr](https://github.com/herdrdev/herdr) is the terminal workspace manager. [herdr-customizations](https://github.com/kevinmanase/herdr-customizations) is the set of hooks and naming rules i put on top of it.
+
+![my herdr sidebar with one crowned orchestrator, named workers, and visible status markers](/screenshots/agent-wire/herdr-orchestrator.png)
+
+*my working setup. the herdr-customizations repo includes a portable version of these naming hooks.*
+
+herdr is a terminal workspace manager with tmux-style controls. it owns the terminals and lets me keep agents, tabs, and projects together. it is its own runtime, not a layer built on tmux.
+
+my naming setup adds a small convention:
+
+```text
+status + stage + short task name
+```
+
+the first symbol tells me whether the turn is working, finished, or needs me:
+
+| Prefix | Meaning in my hooks |
+| --- | --- |
+| ⏳ | working |
+| ✅ | turn finished |
+| ⚪ | ready, no active task |
+| ❓ | i need to answer or decide |
+| ❗ | i need to do something |
+
+then comes the stage: investigating, building, testing, reviewing, PR open, merged, blocked, failing, or parked. the crown is reserved for the orchestrator.
+
+so a label can move from `⏳ 🔍 login bug` to `⏳ 🛠️ login bug`, then `✅ 👀 login review`.
+
+the status changes through hooks. the agent keeps the short task name and stage current as the work changes. it doesn't need a new label for every tool call.
+
+when it needs me, the question goes in the label: `❓ ship today? · login fix`. an action gets a different marker. both can raise a herdr notification. pending asks stay visible until answered.
+
+these are my personal hooks and naming rules. agent wire doesn't require them, and the tab label isn't its source of truth. herdr's own detected agent state is separate too.
+
+a checkmark means the turn ended. it is not a green test suite.
+
+## how i use them together
+
+say one worker is fixing a login bug and another is reviewing it.
+
+- each publishes its own task report through agent wire
+- the orchestrator reads the list and follows up through messages
+- each worker keeps its herdr tab named for its current task and stage
+- when a decision needs me, the orchestrator puts the question in its label and asks me in our main conversation
+
+i can scan the tabs. the orchestrator can read the reports. the workers keep their own contexts and native tools.
+
+## copy either setup, or both
+
+start with the [agent wire setup](https://github.com/kevinmanase/agent-wire/blob/main/docs/setup.md) for the broker, session enrollment, MCP tools, and shared reports.
+
+for the tab names, use [herdr-customizations](https://github.com/kevinmanase/herdr-customizations). it includes the screenshot, [setup guide](https://github.com/kevinmanase/herdr-customizations/blob/main/docs/setup.md), [skill and helper](https://github.com/kevinmanase/herdr-customizations/tree/main/skills/herdr-labels), and [hook examples for both clients](https://github.com/kevinmanase/herdr-customizations/tree/main/hooks). it works without an agent wire broker.
+
+after copying the skill into your user skills directory, a codex pane can do this:
+
+```sh
+helper="${CODEX_HOME:-$HOME/.codex}/skills/herdr-labels/scripts/herdr_tab.py"
+python3 "$helper" name "🛠️ login fix"
+python3 "$helper" ask "ship today?"
+```
+
+the question survives the end of the turn. once answered, the agent calls `resolve` and carries on.
+
+the hooks handle turn state. the skill tells the agent when to rename and how to make the ask useful. notifications are optional. install it for whichever clients you use. if you use both projects, keep these hooks alongside agent wire's reporting hooks.
+
+## keep the native tools
+
+the workers can use different runtimes while keeping their native tools, sessions, and permission flows. i don't have to squeeze every worker into one agent's subagent system to give them a way to communicate.
+
+that includes keeping their native subagent systems. agent wire connects the enrolled sessions. each session can organize its own team underneath.
+
+today agent wire's native adapters target specific codex and claude code versions on linux and macOS. it is an alpha and local to one host. herdr can host other runtimes, but that doesn't mean agent wire already supports all of them.
+
+that's the direction i want: focused agents, different strengths, a shared way to report and communicate, and one overall supervisor keeping the work coherent.
+
+i want a swarm i can talk to through one conversation.
