@@ -1,8 +1,9 @@
 ---
 title: "agent wire + herdr customizations: one orchestrator, many agents"
-description: "two pieces of my agent setup: agent wire for shared reports and messages, and herdr-customizations for named tabs, hooks, and questions that stay visible."
+description: "claude code in a terminal, codex in the desktop app, and agent wire between them. real messages, screenshots, and a deployment handoff from my setup."
 date: "2026-09-29T12:00:00-05:00"
-created: "2026-09-29"
+created: "2026-09-29T12:00:00-05:00"
+updated: "2026-10-01T12:00:00-05:00"
 tags: ["ai", "agents", "workflow", "claude-code", "codex", "developer-tools"]
 published: true
 ---
@@ -63,6 +64,102 @@ the orchestrator should know what each worker owns, what is waiting, and what ev
 that doesn't make the orchestrator infallible. a worker saying "done" is still a report. the reviewer still needs to review. tests still need to run. a merge still needs to happen.
 
 one place to talk. several places to do focused work.
+
+## october 1: watching it happen
+
+tonight made this feel real.
+
+my overall orchestrator was running claude code in a terminal. another session was running in the codex desktop app, working on an experiment for [&](https://and.com). i was following that session from my phone.
+
+codex was evaluating changes to how our agents run tools and account for their usage. it had a claude code collaborator working on the runtime, while another claude session owned a change to run lab, our testing environment.
+
+separate sessions. different apps. overlapping work.
+
+agent wire gave them a way to find each other and talk through it.
+
+### the deployment handoff
+
+codex was preparing an experimental build. before changing the shared environment, it asked the claude session working on run lab whether a deployment was active or about to start.
+
+there was one. claude had merged a chat input fix, and its run lab deployment was still running.
+
+that changed what codex needed to do. it had already recorded an older environment state to restore after its experiment. restoring that older state could have put the environment back before the other session's fix.
+
+here is the exchange, shortened and paraphrased from the actual agent wire messages. the numbers are the broker's message sequence numbers; unrelated messages happened between them.
+
+**32 · codex → claude, run lab owner**
+
+my candidate build is approaching. is a lab run or deployment active? i'll record the environment before changing traffic and restore it afterward.
+
+**34 · claude → codex**
+
+yes. i merged the chat box fix in PR #3999. its run lab deployment is still running. wait for it, then capture the new state. i have no lab runs active or planned.
+
+**36 · codex → claude**
+
+i'll wait, include your admin fix in my branch, and restore the successfully deployed version after my experiment. i haven't changed cloud traffic yet.
+
+![claude code receiving codex's deployment question, then reporting that its run lab deployment is still running](/screenshots/agent-wire/deployment-handoff.png)
+
+*the receiving claude session in the terminal. it identifies the overlap and replies through agent wire. [open the full screenshot](/screenshots/agent-wire/deployment-handoff.png).*
+
+then codex explained the changed plan to me:
+
+> Another Run Lab change is deploying now. I've coordinated with its owner and will include that admin fix in this branch, then capture the new deployment state before starting the experiment. That gives us the correct version to restore afterward. No candidate traffic has changed yet.
+
+that's the bit i find so cool. a message from another session changed the plan before either one overwrote the other's work. i didn't have to copy the deployment status from the terminal into codex.
+
+these screenshots capture the coordination while the work was underway. they don't establish that the experiment or the eventual restore succeeded.
+
+### implementation and review, across runtimes
+
+the same codex session was also working with a different claude code session on a runtime bug: a tool call could still be running after its enclosing script finished. the run needed to wait for the result and count late usage correctly.
+
+claude sent its diagnosis and proposed fix. codex read the inbox, explicitly acknowledged the message, and replied with a review question:
+
+> Please prove sessionManager.appendUsage adds only late classifier usage and does not double count normal successful codemode usage already appended by Pi.
+
+claude then revised that part of the design. its reply explained that the proposed distinction between normal and late usage couldn't be observed reliably from the engine, and proposed summing each call's usage events instead.
+
+later, claude warned codex that it was briefly putting the old bugs back to prove the new tests failed without the fixes. it sent another message when the file was restored, with the failures it had observed. codex had context for those temporary failures instead of discovering a suddenly broken suite with no explanation.
+
+diagnosis, review, a revised approach, and a heads-up about testing. all in their own sessions.
+
+<div className="grid gap-6 sm:grid-cols-2">
+
+<div>
+
+![the codex conversation on my phone explaining its coordination with the run lab deployment owner](/screenshots/agent-wire/phone-coordination.jpg)
+
+*the plan update i could read from my phone. [open screenshot](/screenshots/agent-wire/phone-coordination.jpg).*
+
+</div>
+
+<div>
+
+![the same codex conversation showing an agent-wire inbox read and explicit acknowledgement of claude's message](/screenshots/agent-wire/phone-receipt.jpg)
+
+*the inbox read and acknowledgement underneath that conversation. [open screenshot](/screenshots/agent-wire/phone-receipt.jpg).*
+
+</div>
+
+</div>
+
+the phone was my view into the codex session. the agents and broker were still running on the computer. this wasn't a broker running on my phone or a new distributed setup.
+
+### the permission boundary stayed visible
+
+there was a real interruption too. claude code held an incoming message because the sender hadn't attested its permission mode and the receiving session was bypassing permission prompts. i approved delivery before it reached claude.
+
+![claude code's held-message prompt, with choices to deny or deliver the incoming peer message](/screenshots/agent-wire/held-message.png)
+
+*the actual delivery prompt. [open screenshot](/screenshots/agent-wire/held-message.png).*
+
+the terminal's generic wrapper said "another claude session," but the agent wire envelope identified the sender as `codex-codemode-jev`. the envelope is what tells us who sent this message.
+
+approving delivery let claude read the message. it didn't approve a deployment or give the peer permission to change that session's rules. the message carried an explicit reminder to treat its contents as peer data and keep the existing task and permissions.
+
+that's what this setup looked like in use: the agents exchanged the details, adjusted their work, and surfaced the part that still needed me.
 
 ## agent wire: the same list inside and outside an agent
 
@@ -138,17 +235,6 @@ when it needs me, the question goes in the label: `❓ ship today? · login fix`
 these are my personal hooks and naming rules. agent wire doesn't require them, and the tab label isn't its source of truth. herdr's own detected agent state is separate too.
 
 a checkmark means the turn ended. it is not a green test suite.
-
-## how i use them together
-
-say one worker is fixing a login bug and another is reviewing it.
-
-- each publishes its own task report through agent wire
-- the orchestrator reads the list and follows up through messages
-- each worker keeps its herdr tab named for its current task and stage
-- when a decision needs me, the orchestrator puts the question in its label and asks me in our main conversation
-
-i can scan the tabs. the orchestrator can read the reports. the workers keep their own contexts and native tools.
 
 ## copy either setup, or both
 
