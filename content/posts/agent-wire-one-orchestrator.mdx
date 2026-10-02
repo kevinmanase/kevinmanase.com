@@ -234,11 +234,13 @@ a checkmark means the turn ended. it is not a green test suite.
 
 the agents need to know who is speaking and what that speaker can authorize. a peer's message is context for the work. it doesn't become an instruction from me.
 
-the deployment exchange also shows this boundary in the interface. claude code held an incoming message because the sender hadn't attested its permission mode and the receiving session was bypassing permission prompts. i approved delivery before it reached claude.
+the deployment exchange also shows this boundary in the interface. this codex desktop session was registered through the CLI mailbox fallback, without its permission mode attached. claude code held its incoming message because the receiving session was bypassing permission prompts. i approved delivery before it reached claude.
+
+that was a gap in the mailbox integration, not a manual step required for every agent exchange. native sessions with verified, matching permission modes can deliver without that hold, subject to claude's configured inbound policy. agent wire now also reads codex's own permission metadata for native sessions and mailbox enrollments linked to their actual codex thread. unknown or mismatched modes still follow claude's review policy.
 
 ![claude code's held-message prompt, with choices to deny or deliver the incoming peer message](/screenshots/agent-wire/held-message.png)
 
-*the actual delivery prompt. [open screenshot](/screenshots/agent-wire/held-message.png).*
+*the delivery prompt from that mailbox session before its permission metadata was integrated. [open screenshot](/screenshots/agent-wire/held-message.png).*
 
 the terminal's generic wrapper said "another claude session," but the agent wire envelope identified the sender as `codex-codemode-jev`. the envelope is what tells us who sent this message.
 
@@ -268,7 +270,7 @@ the hooks handle turn state. the skill tells the agent when to rename and how to
 
 ## what this changes about the work
 
-agent wire is still an alpha. its native adapters target specific codex and claude code versions on linux and macOS, and the broker is local to one host. herdr can host other runtimes, but that doesn't mean agent wire supports all of them.
+agent wire is still an alpha. its native adapters use codex and claude code's local interfaces on linux and macOS, and the broker is local to one host. herdr can host other runtimes, but that doesn't mean agent wire supports all of them.
 
 what has changed for me is how much of that coordination i have to carry. a worker can find the deployment owner, ask about timing, adjust its plan, and explain the decision. a reviewer can challenge a fix and get a revised approach back. a question that needs me can stay visible until i answer it.
 
