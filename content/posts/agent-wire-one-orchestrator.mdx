@@ -1,6 +1,6 @@
 ---
 title: "agent wire + herdr customizations: one orchestrator, many agents"
-description: "claude code in a terminal, codex in the desktop app, and agent wire between them. real messages, screenshots, and a deployment handoff from my setup."
+description: "how i work with one orchestrator and many agents: shared context, cross-runtime review, deployment coordination, and decisions that reach me wherever i am."
 date: "2026-09-29T12:00:00-05:00"
 created: "2026-09-29T12:00:00-05:00"
 updated: "2026-10-01T12:00:00-05:00"
@@ -8,25 +8,23 @@ tags: ["ai", "agents", "workflow", "claude-code", "codex", "developer-tools"]
 published: true
 ---
 
-i published two pieces of my agent setup.
+i've been working with an orchestrator and several coding agents for a while now. it's how i build [&](https://and.com).
+
+my main conversation is with the agent keeping track of the whole thing. other sessions implement, review, investigate, and coordinate the details with each other. i give direction, discuss tradeoffs, and make the decisions that need me.
+
+that work spans apps. my overall orchestrator runs claude code in a terminal. i also use the codex desktop app, and i can follow the codex conversation from my phone. individual sessions can bring in their own subagents or collaborate with another runtime.
+
+two pieces of my setup make that easier to manage.
 
 [agent wire](https://github.com/kevinmanase/agent-wire) lets claude code and codex talk to each other. a shared address book, inbox, replies, and work list. local broker. sqlite underneath. the agents stay in their own sessions.
 
 [herdr-customizations](https://github.com/kevinmanase/herdr-customizations) is my naming setup for [herdr](https://github.com/herdrdev/herdr). hooks, a skill, and a small helper that keep task names and pending questions visible in the terminal.
 
-they are separate repos. use either on its own. together, they give the agents a way to coordinate and give me a workspace i can scan.
-
-the reason i wanted both is simple: i mainly want to talk to one agent.
-
-the orchestrator.
+together, they support how i work: one main conversation, several focused teams, and less coordination passing through me. the examples below are pieces of that workflow in practice.
 
 ![look at me, i'm the captain now](/screenshots/agent-wire/captain-now.gif)
 
 *the vibe. [gif on giphy](https://giphy.com/gifs/reactiongifs-rVZEejvVWEbug).*
-
-it keeps track of the others. i give it direction, discuss tradeoffs, and answer the things that need me. workers handle their own pieces and report back.
-
-the plan is a swarm. but a swarm only works for me if someone is supervising it.
 
 ## the problem: i became the message bus
 
@@ -34,11 +32,13 @@ running several agents is easy. keeping them pointed at the same outcome takes w
 
 one is implementing. another is reviewing. a third found something that changes the plan. someone is waiting on a decision, but that question is buried in a tab i haven't opened.
 
-then i'm copying messages between windows. asking who is still working. trying to remember whether that checkmark meant the turn ended or the change shipped.
+i used to fill those gaps by copying messages between windows. asking who was still working. trying to remember whether that checkmark meant the turn ended or the change shipped.
 
 i wrote about the broader pattern in [agents guiding agents](/posts/agents-guiding-agents). separate the maker, the checker, and the agent keeping track of the whole thing.
 
 agent wire gives those conversations a shared place to happen. the herdr customization keeps the state i need visible in the tab names.
+
+the work that keeps coming up is coordination: who owns this change, whose work does it affect, what evidence is missing, and what needs my attention. those are useful jobs for agents too.
 
 ## one main conversation
 
@@ -59,27 +59,45 @@ me
       its own subagents
 ```
 
-the orchestrator should know what each worker owns, what is waiting, and what evidence comes next. it can ask for an update without making me switch tabs and relay it.
+the orchestrator keeps track of what each worker owns, what is waiting, and what evidence comes next. it can ask for an update without making me switch tabs and relay it.
 
 that doesn't make the orchestrator infallible. a worker saying "done" is still a report. the reviewer still needs to review. tests still need to run. a merge still needs to happen.
 
-one place to talk. several places to do focused work.
+the hierarchy gives me a place to steer the work. workers also talk directly when their tasks overlap. a deployment owner can answer a runtime worker without sending every detail through the overall orchestrator.
 
-## october 1: watching it happen
+the overall orchestrator keeps the broader picture while workers resolve those details together.
 
-tonight made this feel real.
+## a shared view of the work
 
-my overall orchestrator was running claude code in a terminal. another session was running in the codex desktop app, working on an experiment for [&](https://and.com). i was following that session from my phone.
+the orchestrator needs a shared view of the work before it can follow up. so do workers trying to find the owner of something they depend on.
 
-codex was evaluating changes to how our agents run tools and account for their usage. it had a claude code collaborator working on the runtime, while another claude session owned a change to run lab, our testing environment.
+from a plain terminal:
 
-separate sessions. different apps. overlapping work.
+```sh
+agent-wire sessions --table
+```
 
-agent wire gave them a way to find each other and talk through it.
+![agent wire's shared work list in a terminal, with claude and codex sessions and their latest task reports](/screenshots/agent-wire/shared-work-list.png)
 
-### the deployment handoff
+*the shared work list in my terminal, with the herdr workspace alongside it. [open the full screenshot](/screenshots/agent-wire/shared-work-list.png).*
 
-codex was preparing an experimental build. before changing the shared environment, it asked the claude session working on run lab whether a deployment was active or about to start.
+inside a coding agent, the MCP tool is `sessions_list`.
+
+both read the same shared work list. each enrolled session publishes its own task and status through `session_update`, or through the CLI's `report` command.
+
+the statuses are `working`, `waiting`, `blocked`, `idle`, and `done`. a report can also include a repository, branch, ticket, and more detail.
+
+freshness matters. with reporting hooks installed, a new prompt marks the previous report as needing an update. five minutes without a report or hook heartbeat makes an entry stale. heartbeats track contact, not the age of the task report. stale doesn't mean the process died. idle doesn't mean the task is finished.
+
+only enrolled sessions appear. the list covers the agents that have joined.
+
+the list tells an agent where to start. messages let it resolve the detail with the session that owns the work.
+
+## workers coordinate the dependencies
+
+shared environments make that especially useful. separate branches don't stop two agents from affecting the same running system.
+
+in one runtime comparison for &, codex was preparing a candidate build for run lab, our testing environment. another claude code session owned a change to run lab itself. before changing the environment, codex asked that session whether a deployment was active or about to start.
 
 there was one. claude had merged a chat input fix, and its run lab deployment was still running.
 
@@ -107,13 +125,15 @@ then codex explained the changed plan to me:
 
 > Another Run Lab change is deploying now. I've coordinated with its owner and will include that admin fix in this branch, then capture the new deployment state before starting the experiment. That gives us the correct version to restore afterward. No candidate traffic has changed yet.
 
-that's the bit i find so cool. a message from another session changed the plan before either one overwrote the other's work. i didn't have to copy the deployment status from the terminal into codex.
+this is the kind of coordination i want happening between workers. the deployment owner had information that changed the runtime worker's plan. they exchanged it directly, and i got the explanation of what changed.
 
-these screenshots capture the coordination while the work was underway. they don't establish that the experiment or the eventual restore succeeded.
+the useful outcome here was a corrected plan before a traffic change. the test results and the eventual restore still needed their own evidence.
 
-### implementation and review, across runtimes
+## implementation and review, across runtimes
 
-the same codex session was also working with a different claude code session on a runtime bug: a tool call could still be running after its enclosing script finished. the run needed to wait for the result and count late usage correctly.
+review is another place where the conversation matters. a handoff needs room for questions and revisions.
+
+in that runtime work, codex was also collaborating with a different claude code session on a bug: a tool call could still be running after its enclosing script finished. the run needed to wait for the result and count late usage correctly.
 
 claude sent its diagnosis and proposed fix. codex read the inbox, explicitly acknowledged the message, and replied with a review question:
 
@@ -123,7 +143,30 @@ claude then revised that part of the design. its reply explained that the propos
 
 later, claude warned codex that it was briefly putting the old bugs back to prove the new tests failed without the fixes. it sent another message when the file was restored, with the failures it had observed. codex had context for those temporary failures instead of discovering a suddenly broken suite with no explanation.
 
-diagnosis, review, a revised approach, and a heads-up about testing. all in their own sessions.
+the agents were maintaining a shared understanding as the work changed: the diagnosis, the review question, the revised approach, and the testing window. each kept its own context and tools.
+
+that includes their native subagent systems. agent wire connects enrolled sessions; each session can organize its own team underneath. i can use the strengths of different runtimes without moving all the work into one agent's subagent system.
+
+## messages need receipts
+
+an agent can discover enrolled recipients with `agents_list`, send with `message_send`, and read its inbox with `messages_read`. replies link back to the original message. there is also an explicit acknowledgement.
+
+those distinctions matter:
+
+- queued means the broker has it
+- submitted means codex accepted the delivery request, or the claude socket write completed. it is not a receipt
+- acknowledged means the recipient explicitly acknowledged it
+- a reply is a reply. it doesn't prove the requested work is complete
+
+the broker stores messages in sqlite. it supports native delivery paths for codex and claude code. the codex desktop session in these examples used the CLI mailbox commands: `inbox`, `ack`, and `send`. you can see the acknowledgement in the phone screenshot below.
+
+agent wire doesn't launch workers or decide what they should do. the orchestration policy lives with the orchestrator.
+
+## following the work from my phone
+
+following the work from my phone is part of why this setup matters to me. the terminal doesn't have to be in front of me for the codex session to explain a decision or surface something it needs.
+
+the screenshots show two levels of the same conversation: the explanation i read, and the inbox read and acknowledgement behind it.
 
 <div className="grid gap-6 sm:grid-cols-2">
 
@@ -145,60 +188,11 @@ diagnosis, review, a revised approach, and a heads-up about testing. all in thei
 
 </div>
 
-the phone was my view into the codex session. the agents and broker were still running on the computer. this wasn't a broker running on my phone or a new distributed setup.
-
-### the permission boundary stayed visible
-
-there was a real interruption too. claude code held an incoming message because the sender hadn't attested its permission mode and the receiving session was bypassing permission prompts. i approved delivery before it reached claude.
-
-![claude code's held-message prompt, with choices to deny or deliver the incoming peer message](/screenshots/agent-wire/held-message.png)
-
-*the actual delivery prompt. [open screenshot](/screenshots/agent-wire/held-message.png).*
-
-the terminal's generic wrapper said "another claude session," but the agent wire envelope identified the sender as `codex-codemode-jev`. the envelope is what tells us who sent this message.
-
-approving delivery let claude read the message. it didn't approve a deployment or give the peer permission to change that session's rules. the message carried an explicit reminder to treat its contents as peer data and keep the existing task and permissions.
-
-that's what this setup looked like in use: the agents exchanged the details, adjusted their work, and surfaced the part that still needed me.
-
-## agent wire: the same list inside and outside an agent
-
-from a plain terminal:
-
-```sh
-agent-wire sessions --table
-```
-
-![agent wire's shared work list in a terminal, with claude and codex sessions and their latest task reports](/screenshots/agent-wire/shared-work-list.png)
-
-*the shared work list in my terminal, with the herdr workspace alongside it. [open the full screenshot](/screenshots/agent-wire/shared-work-list.png).*
-
-inside a coding agent, the MCP tool is `sessions_list`.
-
-both read the same shared work list. each enrolled session publishes its own task and status through `session_update`, or through the CLI's `report` command.
-
-the statuses are `working`, `waiting`, `blocked`, `idle`, and `done`. a report can also include a repository, branch, ticket, and more detail.
-
-freshness matters. with reporting hooks installed, a new prompt marks the previous report as needing an update. five minutes without a report or hook heartbeat makes an entry stale. heartbeats track contact, not the age of the task report. stale doesn't mean the process died. idle doesn't mean the task is finished.
-
-only enrolled sessions appear. the list covers the agents that have joined.
-
-## messages need receipts
-
-an agent can discover enrolled recipients with `agents_list`, send with `message_send`, and read its inbox with `messages_read`. replies link back to the original message. there is also an explicit acknowledgement.
-
-those distinctions matter:
-
-- queued means the broker has it
-- submitted means codex accepted the delivery request, or the claude socket write completed. it is not a receipt
-- acknowledged means the recipient explicitly acknowledged it
-- a reply is a reply. it doesn't prove the requested work is complete
-
-the broker stores messages in sqlite. delivery goes through native runtime interfaces: tool output for codex, a session inbox for claude code.
-
-agent wire doesn't launch workers or decide what they should do. the orchestration policy lives with the orchestrator.
+the agents and local broker continue running on the computer. the phone is my view into that session. i can follow the reasoning and give direction while the workers handle their exchanges.
 
 ## herdr-customizations: make the work visible
+
+when i'm at the computer, i want to scan the whole workspace just as easily.
 
 [herdr](https://github.com/herdrdev/herdr) is the terminal workspace manager. [herdr-customizations](https://github.com/kevinmanase/herdr-customizations) is the set of hooks and naming rules i put on top of it.
 
@@ -236,7 +230,25 @@ these are my personal hooks and naming rules. agent wire doesn't require them, a
 
 a checkmark means the turn ended. it is not a green test suite.
 
+## peer messages and human decisions
+
+the agents need to know who is speaking and what that speaker can authorize. a peer's message is context for the work. it doesn't become an instruction from me.
+
+the deployment exchange also shows this boundary in the interface. claude code held an incoming message because the sender hadn't attested its permission mode and the receiving session was bypassing permission prompts. i approved delivery before it reached claude.
+
+![claude code's held-message prompt, with choices to deny or deliver the incoming peer message](/screenshots/agent-wire/held-message.png)
+
+*the actual delivery prompt. [open screenshot](/screenshots/agent-wire/held-message.png).*
+
+the terminal's generic wrapper said "another claude session," but the agent wire envelope identified the sender as `codex-codemode-jev`. the envelope is what tells us who sent this message.
+
+approving delivery let claude read the message. it didn't approve a deployment or give the peer permission to change that session's rules. the message carried an explicit reminder to treat its contents as peer data and keep the existing task and permissions.
+
+that distinction is part of the workflow. agents can ask questions, point out dependencies, and challenge an approach. approvals remain with the person or system responsible for them.
+
 ## copy either setup, or both
+
+agent wire and herdr-customizations are separate repos. use either on its own. agent wire handles shared reports and communication; the herdr customization keeps names and questions visible in my terminal workspace.
 
 start with the [agent wire setup](https://github.com/kevinmanase/agent-wire/blob/main/docs/setup.md) for the broker, session enrollment, MCP tools, and shared reports.
 
@@ -254,14 +266,10 @@ the question survives the end of the turn. once answered, the agent calls `resol
 
 the hooks handle turn state. the skill tells the agent when to rename and how to make the ask useful. notifications are optional. install it for whichever clients you use. if you use both projects, keep these hooks alongside agent wire's reporting hooks.
 
-## keep the native tools
+## what this changes about the work
 
-the workers can use different runtimes while keeping their native tools, sessions, and permission flows. i don't have to squeeze every worker into one agent's subagent system to give them a way to communicate.
+agent wire is still an alpha. its native adapters target specific codex and claude code versions on linux and macOS, and the broker is local to one host. herdr can host other runtimes, but that doesn't mean agent wire supports all of them.
 
-that includes keeping their native subagent systems. agent wire connects the enrolled sessions. each session can organize its own team underneath.
+what has changed for me is how much of that coordination i have to carry. a worker can find the deployment owner, ask about timing, adjust its plan, and explain the decision. a reviewer can challenge a fix and get a revised approach back. a question that needs me can stay visible until i answer it.
 
-today agent wire's native adapters target specific codex and claude code versions on linux and macOS. it is an alpha and local to one host. herdr can host other runtimes, but that doesn't mean agent wire already supports all of them.
-
-that's the direction i want: focused agents, different strengths, a shared way to report and communicate, and one overall supervisor keeping the work coherent.
-
-i want a swarm i can talk to through one conversation.
+i still steer the work. the agents handle more of the conversation needed to carry it out.
