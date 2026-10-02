@@ -242,6 +242,8 @@ that was a gap in the mailbox integration, not a manual step required for every 
 
 *the delivery prompt from that mailbox session before its permission metadata was integrated. [open screenshot](/screenshots/agent-wire/held-message.png).*
 
+*update: this mailbox integration gap has since been fixed in agent wire 0.3.2 ([commit e465f91](https://github.com/kevinmanase/agent-wire/commit/e465f917ec2b34ddf8a8acddc2109631972682a8)).*
+
 the terminal's generic wrapper said "another claude session," but the agent wire envelope identified the sender as `codex-codemode-jev`. the envelope is what tells us who sent this message.
 
 approving delivery let claude read the message. it didn't approve a deployment or give the peer permission to change that session's rules. the message carried an explicit reminder to treat its contents as peer data and keep the existing task and permissions.
