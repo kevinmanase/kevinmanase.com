@@ -90,6 +90,15 @@ published: true
 ---
 ```
 
+### Updating published posts
+
+Follow `content/posts/handoff.mdx` for substantive revisions:
+
+- Keep the original `date` and `created`; set `updated` to the revision date.
+- Prepend a `changelog` entry with a version, date, and short summary. Preserve earlier entries; verify historical dates from git when adding them retroactively.
+- Use the existing `<Updated date="...">` callout to name the post version, explain the change, and link to the changed section. Use full timestamps with a timezone, as in the Agent Wire post, to avoid date-only timezone shifts.
+- Keep useful earlier approaches visible. A typo fix does not need a new version.
+
 ## Anonymization
 
 When showing examples from real projects, use **Dunder Mifflin Infinity** as the stand-in:
