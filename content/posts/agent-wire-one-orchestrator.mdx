@@ -3,7 +3,7 @@ title: "agent wire + herdr customizations: one orchestrator, many agents"
 description: "how i work with one orchestrator and many agents: shared context, cross-runtime review, deployment coordination, and decisions that reach me wherever i am."
 date: "2026-09-29T12:00:00-05:00"
 created: "2026-09-29T12:00:00-05:00"
-updated: "2026-10-01T12:00:00-05:00"
+updated: "2026-10-05T13:00:00-05:00"
 tags: ["ai", "agents", "workflow", "claude-code", "codex", "developer-tools"]
 published: true
 ---
@@ -218,7 +218,7 @@ the first symbol tells me whether the turn is working, finished, or needs me:
 | ❓ | i need to answer or decide |
 | ❗ | i need to do something |
 
-then comes the stage: investigating, building, testing, reviewing, PR open, merged, blocked, failing, or parked. the crown is reserved for the orchestrator.
+then comes the stage: investigating, building, testing, reviewing, PR open, merged, blocked, failing, or parked. the main orchestrator keeps a crown in its tab label. the grouped sidebar also marks each supervisor with a crown.
 
 so a label can move from `⏳ 🔍 login bug` to `⏳ 🛠️ login bug`, then `✅ 👀 login review`.
 
@@ -229,6 +229,38 @@ when it needs me, the question goes in the label: `❓ ship today? · login fix`
 these are my personal hooks and naming rules. agent wire doesn't require them, and the tab label isn't its source of truth. herdr's own detected agent state is separate too.
 
 a checkmark means the turn ended. it is not a green test suite.
+
+## getting the labels and groups right
+
+i added an [agents sidebar grouped by supervisor](https://github.com/kevinmanase/herdr-customizations/tree/main/plugins/agent-groups). each supervisor sits above its workers. leads can nest beneath another supervisor, or several supervisors can sit at the top. it's a visual hierarchy, with explicit ownership behind it.
+
+getting that working exposed a few gotchas:
+
+1. **terminal codex can use a shared daemon.** in codex 0.160.0, the terminal client and the process running its tools can be separate. our helper can no longer trace a hook back to its foreground herdr pane. an inherited pane ID or the focused tab isn't proof of ownership. the helper skips uncertain bindings. for this terminal setup, i use the supported [`--no-daemon` flag](https://learn.chatgpt.com/docs/changelog):
+
+   ```sh
+   codex --no-daemon
+   codex resume <session-id> --no-daemon
+   ```
+
+   the second command continues the saved conversation.
+
+2. **restoring a chat can lose its launch mode.** herdr 0.9.1 rebuilds the codex resume command without preserving `--no-daemon`. a working setup can lose automatic labels after a restore. use the explicit resume command above. this is a herdr restore limitation in that version.
+
+3. **installed hooks may still need trust and activation.** codex requires review of new or changed hook definitions in [`/hooks`](https://learn.chatgpt.com/docs/hooks). restart or resume when needed to load changed configuration. an existing command hook reads the helper script each time it runs, so changing only that script doesn't automatically require another trust review or restart. `/clear` isn't a reliable way to activate newly installed definitions.
+
+4. **a native task title and a herdr label are separate.** codex's native naming tool let us set a unique temporary title and find the one terminal showing that change. that verified the pane for a manual label update. it didn't create a permanent session-to-pane binding or repair future automatic hooks.
+
+5. **a lead's name doesn't assign its workers.** our manually claimed agent wire lead was named, but had no group assignment. ownership needs explicit relationships using exact herdr agent names:
+
+   ```sh
+   herdr-groups root tooling
+   herdr-groups assign review tooling
+   ```
+
+   here, `tooling` and `review` are existing named agents. the first command makes a top-level supervisor. the second assigns its worker. `sync` refreshes saved assignments; it doesn't infer who supervises a newly named agent.
+
+claude's labels were more consistent in this setup because its integration supplied the terminal ownership we needed. the codex gap was in that runtime connection. both keep the same naming and ownership rules.
 
 ## peer messages and human decisions
 
@@ -256,17 +288,17 @@ agent wire and herdr-customizations are separate repos. use either on its own. a
 
 start with the [agent wire setup](https://github.com/kevinmanase/agent-wire/blob/main/docs/setup.md) for the broker, session enrollment, MCP tools, and shared reports.
 
-for the tab names, use [herdr-customizations](https://github.com/kevinmanase/herdr-customizations). it includes the screenshot, [setup guide](https://github.com/kevinmanase/herdr-customizations/blob/main/docs/setup.md), [skill and helper](https://github.com/kevinmanase/herdr-customizations/tree/main/skills/herdr-labels), and [hook examples for both clients](https://github.com/kevinmanase/herdr-customizations/tree/main/hooks). it works without an agent wire broker.
+for the tab names, use [herdr-customizations](https://github.com/kevinmanase/herdr-customizations). it includes the screenshot, [setup guide](https://github.com/kevinmanase/herdr-customizations/blob/main/docs/setup.md), [codex skill and helper](https://github.com/kevinmanase/herdr-customizations/tree/main/codex/skills/herdr), and [hook examples for both clients](https://github.com/kevinmanase/herdr-customizations/tree/main/hooks). it works without an agent wire broker.
 
 after copying the skill into your user skills directory, a codex pane can do this:
 
 ```sh
-helper="${CODEX_HOME:-$HOME/.codex}/skills/herdr-labels/scripts/herdr_tab.py"
+helper="${CODEX_HOME:-$HOME/.codex}/skills/herdr/scripts/herdr-tab.py"
 python3 "$helper" name "🛠️ login fix"
 python3 "$helper" ask "ship today?"
 ```
 
-the question survives the end of the turn. once answered, the agent calls `resolve` and carries on.
+the question survives the end of the turn. once answered, the agent can call `status working` and carry on.
 
 the hooks handle turn state. the skill tells the agent when to rename and how to make the ask useful. notifications are optional. install it for whichever clients you use. if you use both projects, keep these hooks alongside agent wire's reporting hooks.
 
